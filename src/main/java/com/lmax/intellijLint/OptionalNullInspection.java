@@ -12,8 +12,11 @@ import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
+@SuppressWarnings("WeakerAccess") //Needs to be public as is used in plugin.
 public class OptionalNullInspection extends BaseJavaLocalInspectionTool {
     private static final Logger LOG = Logger.getInstance("#intellijLint.OptionalNullInspection");
 
@@ -33,8 +36,6 @@ public class OptionalNullInspection extends BaseJavaLocalInspectionTool {
     @NonNls
     private static final String DESCRIPTION_TEMPLATE = "Assigning null to optional";
 
-    private ReplaceWithEmptyQuickFix quickFix = new ReplaceWithEmptyQuickFix();
-
     @NotNull
     @Override
     public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
@@ -44,38 +45,65 @@ public class OptionalNullInspection extends BaseJavaLocalInspectionTool {
                 super.visitAssignmentExpression(expression);
 
                 final PsiType assignmentTargetType = expression.getLExpression().getType();
-                boolean isOptional = false;
-                if (assignmentTargetType != null)
-                {
-                    String typeText = assignmentTargetType.getCanonicalText();
-                    final int angleBracketIndex = typeText.indexOf('<');
-                    if (angleBracketIndex != -1){
-                        typeText = typeText.substring(0, angleBracketIndex);
-                    }
+                String optionalTypeString = getOptionalTypeString(assignmentTargetType);
 
-                    for (String o : OPTIONAL_TYPES)
+                if (!optionalTypeString.isEmpty())
+                {
+                    final PsiExpression assignmentValue = expression.getRExpression();
+                    if (isLiteralNull(assignmentValue))
                     {
-                        if (o.equals(typeText))
-                        {
-                            isOptional = true;
-                            break;
-                        }
+                        holder.registerProblem(assignmentValue, DESCRIPTION_TEMPLATE, new ReplaceWithEmptyQuickFix(optionalTypeString));
                     }
                 }
+            }
 
-                if (isOptional)
+            @Override
+            public void visitField(PsiField field) {
+                super.visitField(field);
+
+                final PsiExpression initializer = field.getInitializer();
+                final String optionalTypeString = getOptionalTypeString(field.getType());
+                if (!optionalTypeString.isEmpty() && isLiteralNull(initializer))
                 {
-                    final PsiExpression rExpression = expression.getRExpression();
-                    if (rExpression != null && rExpression instanceof PsiLiteralExpression && "null".equals(rExpression.getText()))
-                    {
-                        holder.registerProblem(expression, DESCRIPTION_TEMPLATE, quickFix);
-                    }
+                    holder.registerProblem(initializer, DESCRIPTION_TEMPLATE, new ReplaceWithEmptyQuickFix(optionalTypeString));
                 }
             }
         };
     }
 
-    private static class ReplaceWithEmptyQuickFix implements LocalQuickFix {
+    private static boolean isLiteralNull(PsiExpression expression) {
+        return expression != null && expression instanceof PsiLiteralExpression && "null".equals(expression.getText());
+    }
+
+    private static String getOptionalTypeString(PsiType assignmentTargetType) {
+        String optionalTypeString = "";
+        if (assignmentTargetType != null)
+        {
+            String typeText = assignmentTargetType.getCanonicalText();
+            final int angleBracketIndex = typeText.indexOf('<');
+            if (angleBracketIndex != -1){
+                typeText = typeText.substring(0, angleBracketIndex);
+            }
+
+            for (String o : OPTIONAL_TYPES)
+            {
+                if (o.equals(typeText))
+                {
+                    optionalTypeString = typeText;
+                    break;
+                }
+            }
+        }
+        return optionalTypeString;
+    }
+
+    private class ReplaceWithEmptyQuickFix implements LocalQuickFix {
+        private final String optionalTypeString;
+
+        private ReplaceWithEmptyQuickFix(String optionalTypeString) {
+            this.optionalTypeString = optionalTypeString;
+        }
+
         @NotNull
         @Override
         public String getName() {
@@ -92,17 +120,11 @@ public class OptionalNullInspection extends BaseJavaLocalInspectionTool {
         @Override
         public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor problemDescriptor) {
             try {
-                final PsiExpression assignmentValue = ((PsiAssignmentExpression) problemDescriptor.getPsiElement()).getRExpression();
-                if (assignmentValue == null)
-                {
-                    return;
-                }
-
                 final PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
 
-                PsiMethodCallExpression emptyCall = (PsiMethodCallExpression) factory.createExpressionFromText("Optional.empty()", null);
+                PsiMethodCallExpression emptyCall = (PsiMethodCallExpression) factory.createExpressionFromText(optionalTypeString + ".empty()", null);
 
-                assignmentValue.replace(emptyCall);
+                problemDescriptor.getPsiElement().replace(emptyCall);
             } catch (IncorrectOperationException e) {
                 LOG.error(e);
             }

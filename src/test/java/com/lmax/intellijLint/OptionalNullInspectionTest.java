@@ -1,7 +1,6 @@
 package com.lmax.intellijLint;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
-import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.junit.Assert;
 
@@ -18,6 +17,10 @@ public class OptionalNullInspectionTest extends LightCodeInsightFixtureTestCase 
     }
 
     public void testOptionalLongNullAssignmentInMethod() throws Exception {
+        doTest(getTestDirectoryName());
+    }
+
+    public void testOptionalNullAssignmentInInitialization() throws Exception {
         doTest(getTestDirectoryName());
     }
 

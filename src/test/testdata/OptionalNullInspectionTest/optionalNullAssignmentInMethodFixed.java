@@ -3,6 +3,6 @@ public class HasOptionalNulls {
 
     public void setToNull()
     {
-        optionalObject = Optional.empty();
+        optionalObject = java.util.Optional.empty();
     }
 }
