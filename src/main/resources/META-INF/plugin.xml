@@ -25,7 +25,7 @@
   -->
 
   <extensions defaultExtensionNs="com.intellij">
-    <inspectionToolProvider implementation="intellijLint.OptionalNullProvider"/>
+    <inspectionToolProvider implementation="com.lmax.intellijLint.OptionalNullProvider"/>
   </extensions>
 
   <actions>

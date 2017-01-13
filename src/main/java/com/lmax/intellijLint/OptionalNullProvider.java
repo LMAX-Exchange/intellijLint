@@ -1,4 +1,4 @@
-package intellijLint;
+package com.lmax.intellijLint;
 
 import com.intellij.codeInspection.InspectionToolProvider;
 

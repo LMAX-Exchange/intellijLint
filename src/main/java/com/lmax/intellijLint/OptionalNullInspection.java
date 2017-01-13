@@ -1,4 +1,4 @@
-package intellijLint;
+package com.lmax.intellijLint;
 
 import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.LocalQuickFix;
