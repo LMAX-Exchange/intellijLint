@@ -13,14 +13,30 @@ public class OptionalNullInspectionTest extends LightCodeInsightFixtureTestCase 
     }
 
     public void testOptionalNullAssignmentInMethod() throws Exception {
-        doTest(getTestDirectoryName());
+        doTest();
+    }
+
+    public void testOptionalNullAssignmentInFieldInitialization() throws Exception {
+        doTest();
+    }
+
+    public void testOptionalNullAssignmentInVariableInitialization() throws Exception {
+        doTest();
     }
 
     public void testOptionalLongNullAssignmentInMethod() throws Exception {
-        doTest(getTestDirectoryName());
+        doTest();
     }
 
-    public void testOptionalNullAssignmentInInitialization() throws Exception {
+    public void testOptionalLongNullAssignmentInFieldInitialization() throws Exception {
+        doTest();
+    }
+
+    public void testOptionalLongNullAssignmentInVariableInitialization() throws Exception {
+        doTest();
+    }
+
+    private void doTest() {
         doTest(getTestDirectoryName());
     }
 

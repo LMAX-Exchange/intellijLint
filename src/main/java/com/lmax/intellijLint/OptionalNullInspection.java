@@ -33,6 +33,13 @@ public class OptionalNullInspection extends BaseJavaLocalInspectionTool {
         return "Assigning null to optional";
     }
 
+    @Nls
+    @NotNull
+    @Override
+    public String getGroupDisplayName() {
+        return "LMAX";
+    }
+
     @NonNls
     private static final String DESCRIPTION_TEMPLATE = "Assigning null to optional";
 
@@ -63,6 +70,18 @@ public class OptionalNullInspection extends BaseJavaLocalInspectionTool {
 
                 final PsiExpression initializer = field.getInitializer();
                 final String optionalTypeString = getOptionalTypeString(field.getType());
+                if (!optionalTypeString.isEmpty() && isLiteralNull(initializer))
+                {
+                    holder.registerProblem(initializer, DESCRIPTION_TEMPLATE, new ReplaceWithEmptyQuickFix(optionalTypeString));
+                }
+            }
+
+            @Override
+            public void visitLocalVariable(PsiLocalVariable variable) {
+                super.visitLocalVariable(variable);
+
+                final PsiExpression initializer = variable.getInitializer();
+                final String optionalTypeString = getOptionalTypeString(variable.getType());
                 if (!optionalTypeString.isEmpty() && isLiteralNull(initializer))
                 {
                     holder.registerProblem(initializer, DESCRIPTION_TEMPLATE, new ReplaceWithEmptyQuickFix(optionalTypeString));
