@@ -9,7 +9,7 @@ import java.util.List;
 public class OptionalNullInspectionTest extends LightCodeInsightFixtureTestCase {
     @Override
     protected String getTestDataPath() {
-        return "src/test/testdata/OptionalNullInspectionTest";
+        return "src/test/testData/OptionalNullInspectionTest";
     }
 
     public void testOptionalNullAssignmentInMethod() throws Exception {
@@ -41,17 +41,13 @@ public class OptionalNullInspectionTest extends LightCodeInsightFixtureTestCase 
     }
 
     private void doTest(String filename) {
-        doTest(filename, 1);
-    }
-
-    private void doTest(String filename, int inspectionCount) {
         myFixture.configureByFile(filename + ".java");
         myFixture.enableInspections(new OptionalNullInspection());
 
-        List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
+        List<HighlightInfo> highlightInfoList = myFixture.doHighlighting();
         Assert.assertEquals(
-                inspectionCount,
-                highlightInfos.stream()
+                1,
+                highlightInfoList.stream()
                         .filter(x -> "Assigning null to optional".equals(x.getDescription()))
                         .count());
 

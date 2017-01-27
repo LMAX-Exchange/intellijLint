@@ -4,10 +4,19 @@ import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
-import org.jetbrains.annotations.*;
+import com.intellij.ui.DocumentAdapter;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import java.awt.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.WeakHashMap;
 
 @SuppressWarnings("WeakerAccess") //Needs to be public as is used in plugin.
 public class UnitsInspection extends BaseJavaLocalInspectionTool {
@@ -28,9 +37,15 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
     }
 
     @NonNls
-    private static final String DESCRIPTION_TEMPLATE = "";
+    private static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";
 
-    private static final String[] stAnnos = new String[]{"org.checkerframework.framework.qual.SubtypeOf"};
+    //TODO figure out how to save these, and make the ui prettier.
+    private static String subtypeAnnotationList = "org.checkerframework.framework.qual.SubtypeOf";
+
+    private static String[] getAnnotationClasses()
+    {
+        return subtypeAnnotationList.split("\\n");
+    }
 
     final WeakHashMap<String, Boolean> subTypeCache = new WeakHashMap<>();
 
@@ -42,24 +57,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
             return false;
         }
         return subTypeCache.computeIfAbsent(annotation.getQualifiedName(),
-                (x) -> annotationClassHasSubtypeAnnotation(resolveAnnotation(annotation)));
-    }
-
-    boolean isSubType(PsiModifierList modifiers)
-    {
-        if (modifiers == null)
-        {
-            return false;
-        }
-
-        for (PsiAnnotation annotation : modifiers.getAnnotations())
-        {
-            if(isSubType(annotation))
-            {
-                return true;
-            }
-        }
-        return false;
+                (x) -> annotationClassHasSubtypeAnnotation(resolve(annotation)));
     }
 
     @Nullable String getSubTypeFQN(PsiModifierList modifierList)
@@ -79,15 +77,20 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
         return null;
     }
 
-    @Nullable String getSubTypeFQN(PsiAnnotation[] annotations)
+    @Nullable String getSubTypeFQN(PsiExpression expression)
     {
-        for (PsiAnnotation annotation : annotations)
+        if (expression instanceof PsiCall)
         {
-            if (isSubType(annotation))
+            PsiMethod psiMethod = ((PsiCall) expression).resolveMethod();
+            if (psiMethod == null)
             {
-                return annotation.getQualifiedName();
+                return null;
             }
+            return getSubTypeFQN(psiMethod.getModifierList());
         }
+
+        //TODO more cases
+
         return null;
     }
 
@@ -99,7 +102,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
 
         final PsiModifierList modifierList = aClass.getModifierList();
 
-        return modifierList != null && modifierListContainsAnnotation(modifierList, stAnnos);
+        return modifierList != null && modifierListContainsAnnotation(modifierList, getAnnotationClasses());
     }
 
     private boolean modifierListContainsAnnotation(PsiModifierList modifiers, String... fqAnnotationName)
@@ -114,7 +117,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
         return false;
     }
 
-    private PsiClass resolveAnnotation(PsiAnnotation annotation) {
+    private PsiClass resolve(PsiAnnotation annotation) {
         final String qualifiedName = annotation.getQualifiedName();
         if (qualifiedName == null)
         {
@@ -132,7 +135,8 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
             public void visitAssignmentExpression(PsiAssignmentExpression expression) {
                 super.visitAssignmentExpression(expression);
 
-                final PsiType assignmentTargetType = expression.getLExpression().getType();
+                String declaredSubTypeFQN = getSubTypeFQN(expression.getLExpression());
+                inspect(expression.getRExpression(), declaredSubTypeFQN, holder);
             }
 
             @Override
@@ -142,14 +146,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
                 final PsiExpression initializer = field.getInitializer();
 
                 final String declaredSubTypeFQN = getSubTypeFQN(field.getModifierList());
-                if (declaredSubTypeFQN != null && initializer != null)
-                {
-                    final PsiType initializedType = initializer.getType();
-                    if (initializedType != null && !Objects.equals(getSubTypeFQN(initializedType.getAnnotations()), declaredSubTypeFQN))
-                    {
-                        holder.registerProblem(initializer, DESCRIPTION_TEMPLATE, null); //TODO: details.
-                    }
-                }
+                inspect(initializer, declaredSubTypeFQN, holder);
             }
 
             @Override
@@ -159,15 +156,37 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
                 final PsiExpression initializer = variable.getInitializer();
 
                 final String declaredSubTypeFQN = getSubTypeFQN(variable.getModifierList());
-                if (declaredSubTypeFQN != null && initializer != null)
-                {
-                    final PsiType initializedType = initializer.getType();
-                    if (initializedType != null && !Objects.equals(getSubTypeFQN(initializedType.getAnnotations()), declaredSubTypeFQN))
-                    {
-                        holder.registerProblem(initializer, DESCRIPTION_TEMPLATE, null); //TODO: details.
-                    }
-                }
+                inspect(initializer, declaredSubTypeFQN, holder);
             }
         };
+    }
+
+    private void inspect(PsiExpression initializer, String declaredSubTypeFQN, @NotNull ProblemsHolder holder) {
+        if (declaredSubTypeFQN != null && initializer != null)
+        {
+            String subTypeFQN = getSubTypeFQN(initializer);
+            if (!Objects.equals(subTypeFQN, declaredSubTypeFQN))
+            {
+                String description = String.format(DESCRIPTION_TEMPLATE, subTypeFQN, declaredSubTypeFQN);
+                holder.registerProblem(initializer, description);
+            }
+        }
+    }
+
+    public JComponent createOptionsPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        final JTextArea checkedClasses = new JTextArea(subtypeAnnotationList);
+        checkedClasses.getDocument().addDocumentListener(new DocumentAdapter() {
+            public void textChanged(DocumentEvent event) {
+                subtypeAnnotationList = checkedClasses.getText();
+            }
+        });
+
+        panel.add(checkedClasses);
+        return panel;
+    }
+
+    public boolean isEnabledByDefault() {
+        return true;
     }
 }

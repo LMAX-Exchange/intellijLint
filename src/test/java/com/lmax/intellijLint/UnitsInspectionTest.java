@@ -9,37 +9,37 @@ import java.util.List;
 public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
     @Override
     protected String getTestDataPath() {
-        return "src/test/testdata/UnitsInspectionTest";
+        return "src/test/testData/UnitsInspectionTest";
     }
 
     public void testMismatchedUnitsOnVariableInitialization() throws Exception {
         doTest();
     }
 
-    private void doTest() {
-        doTest(getTestDirectoryName());
+    public void testUntypedOnVariableInitialization() throws Exception {
+        doTest("null");
     }
 
-    private void doTest(String filename) {
-        doTest(filename, 1);
+    private void doTest()
+    {
+        doTest("bar");
     }
 
-    private void doTest(String filename, int inspectionCount) {
+    private void doTest(String assignmentType)
+    {
+        doTest(getTestDirectoryName(), assignmentType);
+    }
+
+    private void doTest(String filename, String assignmentType) {
         myFixture.configureByFile(filename + ".java");
         myFixture.enableInspections(new UnitsInspection());
 
-        List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
+        List<HighlightInfo> highlightInfoList = myFixture.doHighlighting();
         Assert.assertEquals(
-                inspectionCount,
-                highlightInfos.stream()
-                        .filter(x -> "Mismatched units".equals(x.getDescription()))
+                1,
+                highlightInfoList.stream()
+                        .filter(x -> x.getDescription() != null)
+                        .filter(x -> String.format("Assigning %s to variable of type foo", assignmentType).equals(x.getDescription()))
                         .count());
-
-//        myFixture.getAllQuickFixes()
-//                .stream()
-//                .filter(x -> x.getText().equals("Replace null assignment with optional.empty()"))
-//                .forEach(intention -> myFixture.launchAction(intention));
-//
-//        myFixture.checkResultByFile(filename + "Fixed.java");
     }
 }
