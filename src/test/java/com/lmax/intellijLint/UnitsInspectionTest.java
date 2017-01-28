@@ -24,6 +24,18 @@ public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
         doTest("foo", "null");
     }
 
+    public void testMismatchedUnitsOnOptional() throws Exception {
+        doTest();
+    }
+
+    public void testRightUntypedOnOptional() throws Exception {
+        doTest("null");
+    }
+
+    public void testLeftUntypedOnOptional() throws Exception {
+        doTest("foo","null");
+    }
+
     private void doTest() {
         doTest("bar");
     }
