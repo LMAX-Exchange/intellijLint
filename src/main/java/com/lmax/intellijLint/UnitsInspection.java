@@ -4,9 +4,10 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.codeInspection.util.SpecialAnnotationsUtil;
+import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
-import com.intellij.ui.DocumentAdapter;
 import com.siyeh.ig.ui.ExternalizableStringSet;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
@@ -14,15 +15,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import java.awt.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.WeakHashMap;
+import java.util.*;
 
 @SuppressWarnings("WeakerAccess") //Needs to be public as is used in plugin.
-public class UnitsInspection extends BaseJavaLocalInspectionTool {
+@Storage("com.lmax.intellijLint.units.xml")
+public class UnitsInspection extends BaseJavaLocalInspectionTool implements PersistentStateComponent<UnitsInspection.State> {
     private static final Logger LOG = Logger.getInstance("#intellijLint.UnitsInspection");
 
     @Nls
@@ -42,12 +39,10 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
     @NonNls
     private static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";
 
-    //TODO figure out how to save these
     @SuppressWarnings("PublicField")
-    public static ExternalizableStringSet subTypeAnnotations =
-            new ExternalizableStringSet("org.checkerframework.framework.qual.SubtypeOf");
+    public final List<String> subTypeAnnotations = new ArrayList<>();
 
-    final WeakHashMap<String, Boolean> subTypeCache = new WeakHashMap<>();
+    private final static WeakHashMap<String, Boolean> subTypeCache = new WeakHashMap<>();
 
     boolean isSubType(PsiAnnotation annotation)
     {
@@ -180,5 +175,27 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
 
     public boolean isEnabledByDefault() {
         return true;
+    }
+
+    @Nullable
+    @Override
+    public UnitsInspection.State getState() {
+        State state = new State();
+        state.subTypeAnnotations = new HashSet<>(this.subTypeAnnotations);
+        return state;
+    }
+
+    @Override
+    public void loadState(UnitsInspection.State state) {
+        this.subTypeAnnotations.addAll(state.subTypeAnnotations);
+    }
+
+    public class State {
+        public State()
+        {
+            subTypeAnnotations = new ExternalizableStringSet("org.checkerframework.framework.qual.SubtypeOf");
+        }
+
+        public Set<String> subTypeAnnotations;
     }
 }
