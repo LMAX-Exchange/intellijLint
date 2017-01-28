@@ -100,18 +100,6 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
         return modifierList != null && AnnotationUtil.isAnnotated(aClass, subTypeAnnotations);
     }
 
-    private boolean modifierListContainsAnnotation(PsiModifierList modifiers, String... fqAnnotationName)
-    {
-        final HashSet<String> annotationsNameSet = new HashSet<>(Arrays.asList(fqAnnotationName));
-        //List is probably short enough that stream overhead is non-negligible.
-        for (PsiAnnotation annotation: modifiers.getAnnotations()) {
-            if (annotationsNameSet.contains(annotation.getQualifiedName())){
-                return true;
-            }
-        }
-        return false;
-    }
-
     private PsiClass resolve(PsiAnnotation annotation) {
         final String qualifiedName = annotation.getQualifiedName();
         if (qualifiedName == null)
@@ -157,7 +145,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     }
 
     private void inspect(PsiExpression initializer, String declaredSubTypeFQN, @NotNull ProblemsHolder holder) {
-        if (declaredSubTypeFQN != null && initializer != null)
+        if (initializer != null)
         {
             String subTypeFQN = getSubTypeFQN(initializer);
             if (!Objects.equals(subTypeFQN, declaredSubTypeFQN))

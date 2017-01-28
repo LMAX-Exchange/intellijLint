@@ -16,30 +16,39 @@ public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
         doTest();
     }
 
-    public void testUntypedOnVariableInitialization() throws Exception {
+    public void testRightUntypedOnVariableInitialization() throws Exception {
         doTest("null");
     }
 
-    private void doTest()
-    {
+    public void testLeftUntypedOnVariableInitialization() throws Exception {
+        doTest("foo", "null");
+    }
+
+    private void doTest() {
         doTest("bar");
     }
 
-    private void doTest(String assignmentType)
-    {
-        doTest(getTestDirectoryName(), assignmentType);
+    private void doTest(String assignmentType) {
+        doTest(assignmentType, "foo");
     }
 
-    private void doTest(String filename, String assignmentType) {
+    private void doTest(String assignmentType, String targetType) {
+        doTest(getTestDirectoryName(), assignmentType, targetType);
+    }
+
+    private void doTest(String filename, String assignmentType, String targetType) {
         myFixture.configureByFile(filename + ".java");
-        myFixture.enableInspections(new UnitsInspection());
+        UnitsInspection unitsInspection = new UnitsInspection();
+        unitsInspection.subTypeAnnotations.add("org.checkerframework.framework.qual.SubtypeOf");
+        myFixture.enableInspections(unitsInspection);
 
         List<HighlightInfo> highlightInfoList = myFixture.doHighlighting();
         Assert.assertEquals(
                 1,
                 highlightInfoList.stream()
                         .filter(x -> x.getDescription() != null)
-                        .filter(x -> String.format("Assigning %s to variable of type foo", assignmentType).equals(x.getDescription()))
+                        .filter(x -> String.format("Assigning %s to variable of type %s", assignmentType, targetType)
+                                .equals(x.getDescription()))
                         .count());
     }
 }
