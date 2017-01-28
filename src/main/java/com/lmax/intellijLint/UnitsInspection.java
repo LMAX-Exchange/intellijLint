@@ -1,10 +1,13 @@
 package com.lmax.intellijLint;
 
+import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.codeInspection.util.SpecialAnnotationsUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
 import com.intellij.ui.DocumentAdapter;
+import com.siyeh.ig.ui.ExternalizableStringSet;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -39,13 +42,10 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
     @NonNls
     private static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";
 
-    //TODO figure out how to save these, and make the ui prettier.
-    private static String subtypeAnnotationList = "org.checkerframework.framework.qual.SubtypeOf";
-
-    private static String[] getAnnotationClasses()
-    {
-        return subtypeAnnotationList.split("\\n");
-    }
+    //TODO figure out how to save these
+    @SuppressWarnings("PublicField")
+    public static ExternalizableStringSet subTypeAnnotations =
+            new ExternalizableStringSet("org.checkerframework.framework.qual.SubtypeOf");
 
     final WeakHashMap<String, Boolean> subTypeCache = new WeakHashMap<>();
 
@@ -102,7 +102,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
 
         final PsiModifierList modifierList = aClass.getModifierList();
 
-        return modifierList != null && modifierListContainsAnnotation(modifierList, getAnnotationClasses());
+        return modifierList != null && AnnotationUtil.isAnnotated(aClass, subTypeAnnotations);
     }
 
     private boolean modifierListContainsAnnotation(PsiModifierList modifiers, String... fqAnnotationName)
@@ -174,16 +174,8 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool {
     }
 
     public JComponent createOptionsPanel() {
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        final JTextArea checkedClasses = new JTextArea(subtypeAnnotationList);
-        checkedClasses.getDocument().addDocumentListener(new DocumentAdapter() {
-            public void textChanged(DocumentEvent event) {
-                subtypeAnnotationList = checkedClasses.getText();
-            }
-        });
-
-        panel.add(checkedClasses);
-        return panel;
+        return SpecialAnnotationsUtil.createSpecialAnnotationsListControl(
+                subTypeAnnotations, "Sub Type annotations");
     }
 
     public boolean isEnabledByDefault() {
