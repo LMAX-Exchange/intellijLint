@@ -5,6 +5,7 @@ import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
 import org.junit.Assert;
 
 import java.util.List;
+import java.util.Objects;
 
 public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
     @Override
@@ -36,8 +37,13 @@ public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
         doTest("foo","null");
     }
 
-    public void testReturnType() throws Exception {
+    public void testReturnUntyped() throws Exception {
         doTest("Returning null when expecting foo");
+    }
+
+    public void testReturnVariable() throws Exception {
+        //TODO: figure out how to get a count of my errors, and check it's zero.
+        //doTest()
     }
 
     public void testArithmetic() throws Exception {
