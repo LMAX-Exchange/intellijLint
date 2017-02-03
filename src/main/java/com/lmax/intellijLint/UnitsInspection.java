@@ -62,7 +62,17 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             return null;
         }
 
-        for (PsiAnnotation annotation : modifierList.getAnnotations())
+        return getSubTypeFQN(modifierList.getAnnotations());
+    }
+
+    @Nullable String getSubTypeFQN(PsiAnnotation[] annotations)
+    {
+        if (annotations == null || annotations.length == 0)
+        {
+            return null;
+        }
+
+        for (PsiAnnotation annotation : annotations)
         {
             if(isSubType(annotation))
             {
@@ -72,8 +82,13 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
         return null;
     }
 
-    @Nullable String getSubTypeFQN(PsiExpression expression)
+    @Nullable String getSubTypeFQN(@Nullable PsiExpression expression)
     {
+        if (expression == null)
+        {
+            return null;
+        }
+
         if (expression instanceof PsiCall)
         {
             PsiMethod psiMethod = ((PsiCall) expression).resolveMethod();
@@ -84,7 +99,16 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             return getSubTypeFQN(psiMethod.getModifierList());
         }
 
-        //TODO more cases
+        if (expression instanceof PsiTypeCastExpression)
+        {
+            PsiTypeElement castingTo = ((PsiTypeCastExpression) expression).getCastType();
+            if (castingTo == null)
+            {
+                return null;
+            }
+
+            return getSubTypeFQN(castingTo.getAnnotations());
+        }
 
         return null;
     }
@@ -168,6 +192,19 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
                 inspect(returnValue, declaredSubTypeFQN, holder, "Returning %s when expecting %s");
             }
+
+            @Override
+            public void visitBinaryExpression(PsiBinaryExpression expression) {
+                super.visitBinaryExpression(expression);
+
+                PsiExpression rOperand = expression.getROperand();
+                if (rOperand == null)
+                {
+                    return;
+                }
+
+                inspect(expression, getSubTypeFQN(expression.getLOperand()), getSubTypeFQN(rOperand), holder, "Left side of binary expression is %s and right side is %s");
+            }
         };
     }
 
@@ -175,15 +212,18 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
         inspect(initializer, declaredSubTypeFQN, holder, DESCRIPTION_TEMPLATE);
     }
 
-    private void inspect(PsiExpression initializer, String declaredSubTypeFQN, @NotNull ProblemsHolder holder, String descriptionTemplate) {
+    private void inspect(@Nullable PsiExpression initializer, @Nullable String declaredSubTypeFQN, @NotNull ProblemsHolder holder, String descriptionTemplate) {
         if (initializer != null)
         {
             String subTypeFQN = getSubTypeFQN(initializer);
-            if (!Objects.equals(subTypeFQN, declaredSubTypeFQN))
-            {
-                String description = String.format(descriptionTemplate, subTypeFQN, declaredSubTypeFQN);
-                holder.registerProblem(initializer, description);
-            }
+            inspect(initializer, subTypeFQN, declaredSubTypeFQN, holder, descriptionTemplate);
+        }
+    }
+
+    private void inspect(PsiExpression potentiallyProblematicExpression, String leftSubtypeFQN, String rightSubTypeFQN, @NotNull ProblemsHolder holder, String descriptionTemplate) {
+        if (!Objects.equals(leftSubtypeFQN, rightSubTypeFQN)) {
+            String description = String.format(descriptionTemplate, leftSubtypeFQN, rightSubTypeFQN);
+            holder.registerProblem(potentiallyProblematicExpression, description);
         }
     }
 

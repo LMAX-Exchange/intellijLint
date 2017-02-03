@@ -40,6 +40,10 @@ public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
         doTest("Returning null when expecting foo");
     }
 
+    public void testArithmetic() throws Exception {
+        doTest("Left side of binary expression is null and right side is foo");
+    }
+
     private void doTest(String assignmentType, String targetType) {
         doTest(String.format("Assigning %s to variable of type %s", assignmentType, targetType));
     }
