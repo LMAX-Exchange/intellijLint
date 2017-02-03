@@ -110,6 +110,21 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 .findClass(qualifiedName, annotation.getResolveScope());
     }
 
+    private PsiMethod walkUpToWrappingMethod(PsiElement element)
+    {
+        PsiElement parent = element.getParent();
+        if (parent == null)
+        {
+            return null;
+        }
+
+        if (parent instanceof PsiMethod) {
+            return (PsiMethod) parent;
+        } else {
+            return walkUpToWrappingMethod(parent);
+        }
+    }
+
     @NotNull
     @Override
     public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
@@ -141,16 +156,32 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 final String declaredSubTypeFQN = getSubTypeFQN(variable.getModifierList());
                 inspect(initializer, declaredSubTypeFQN, holder);
             }
+
+            @Override
+            public void visitReturnStatement(PsiReturnStatement statement) {
+                super.visitReturnStatement(statement);
+
+                final PsiExpression returnValue = statement.getReturnValue();
+
+                PsiMethod psiMethod = walkUpToWrappingMethod(returnValue);
+                final String declaredSubTypeFQN = getSubTypeFQN(psiMethod != null ? psiMethod.getModifierList() : null);
+
+                inspect(returnValue, declaredSubTypeFQN, holder, "Returning %s when expecting %s");
+            }
         };
     }
 
     private void inspect(PsiExpression initializer, String declaredSubTypeFQN, @NotNull ProblemsHolder holder) {
+        inspect(initializer, declaredSubTypeFQN, holder, DESCRIPTION_TEMPLATE);
+    }
+
+    private void inspect(PsiExpression initializer, String declaredSubTypeFQN, @NotNull ProblemsHolder holder, String descriptionTemplate) {
         if (initializer != null)
         {
             String subTypeFQN = getSubTypeFQN(initializer);
             if (!Objects.equals(subTypeFQN, declaredSubTypeFQN))
             {
-                String description = String.format(DESCRIPTION_TEMPLATE, subTypeFQN, declaredSubTypeFQN);
+                String description = String.format(descriptionTemplate, subTypeFQN, declaredSubTypeFQN);
                 holder.registerProblem(initializer, description);
             }
         }

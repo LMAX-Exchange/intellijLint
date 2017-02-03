@@ -13,11 +13,11 @@ public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
     }
 
     public void testMismatchedUnitsOnVariableInitialization() throws Exception {
-        doTest();
+        doTest("bar", "foo");
     }
 
     public void testRightUntypedOnVariableInitialization() throws Exception {
-        doTest("null");
+        doTest("null", "foo");
     }
 
     public void testLeftUntypedOnVariableInitialization() throws Exception {
@@ -25,31 +25,27 @@ public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
     }
 
     public void testMismatchedUnitsOnOptional() throws Exception {
-        doTest();
+        doTest("bar", "foo");
     }
 
     public void testRightUntypedOnOptional() throws Exception {
-        doTest("null");
+        doTest("null", "foo");
     }
 
     public void testLeftUntypedOnOptional() throws Exception {
         doTest("foo","null");
     }
 
-    private void doTest() {
-        doTest("bar");
-    }
-
-    private void doTest(String assignmentType) {
-        doTest(assignmentType, "foo");
+    public void testReturnType() throws Exception {
+        doTest("Returning null when expecting foo");
     }
 
     private void doTest(String assignmentType, String targetType) {
-        doTest(getTestDirectoryName(), assignmentType, targetType);
+        doTest(String.format("Assigning %s to variable of type %s", assignmentType, targetType));
     }
 
-    private void doTest(String filename, String assignmentType, String targetType) {
-        myFixture.configureByFile(filename + ".java");
+    private void doTest(String expectedMessage) {
+        myFixture.configureByFile(getTestDirectoryName() + ".java");
         UnitsInspection unitsInspection = new UnitsInspection();
         unitsInspection.subTypeAnnotations.add("org.checkerframework.framework.qual.SubtypeOf");
         myFixture.enableInspections(unitsInspection);
@@ -59,8 +55,7 @@ public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
                 1,
                 highlightInfoList.stream()
                         .filter(x -> x.getDescription() != null)
-                        .filter(x -> String.format("Assigning %s to variable of type %s", assignmentType, targetType)
-                                .equals(x.getDescription()))
+                        .filter(x -> expectedMessage.equals(x.getDescription()))
                         .count());
     }
 }
