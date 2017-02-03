@@ -41,7 +41,11 @@ public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
     }
 
     public void testArithmetic() throws Exception {
-        doTest("Left side of binary expression is null and right side is foo");
+        doTest("Left side of expression is null and right side is foo");
+    }
+
+    public void testTernary() throws Exception {
+        doTest("Left side of expression is null and right side is foo");
     }
 
     private void doTest(String assignmentType, String targetType) {

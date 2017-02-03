@@ -39,6 +39,9 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     @NonNls
     private static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";
 
+    @NonNls
+    private static final String BINARY_EXPRESSION_DESCRIPTION_TEMPLATE = "Left side of expression is %s and right side is %s";
+
     @SuppressWarnings("PublicField")
     public final List<String> subTypeAnnotations = new ArrayList<>();
 
@@ -203,7 +206,20 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return;
                 }
 
-                inspect(expression, getSubTypeFQN(expression.getLOperand()), getSubTypeFQN(rOperand), holder, "Left side of binary expression is %s and right side is %s");
+                inspect(expression, getSubTypeFQN(expression.getLOperand()), getSubTypeFQN(rOperand), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
+            }
+
+            @Override
+            public void visitConditionalExpression(PsiConditionalExpression expression) {
+                super.visitConditionalExpression(expression);
+
+                PsiExpression elseExpression = expression.getElseExpression();
+                if (elseExpression == null)
+                {
+                    return;
+                }
+
+                inspect(expression, getSubTypeFQN(expression.getThenExpression()), getSubTypeFQN(elseExpression), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
             }
         };
     }
