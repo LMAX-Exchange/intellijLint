@@ -113,6 +113,17 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             return getSubTypeFQN(castingTo.getAnnotations());
         }
 
+        if (expression instanceof PsiConditionalExpression)
+        {
+            //Differences between sides of expression are handled in visitor.
+            return getSubTypeFQN(((PsiConditionalExpression) expression).getThenExpression());
+        }
+
+        if (expression instanceof PsiVariable)
+        {
+            return getSubTypeFQN(((PsiVariable) expression).getModifierList());
+        }
+
         return null;
     }
 
@@ -139,6 +150,11 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     private PsiMethod walkUpToWrappingMethod(PsiElement element)
     {
+        if (element == null)
+        {
+            return null;
+        }
+
         PsiElement parent = element.getParent();
         if (parent == null)
         {
