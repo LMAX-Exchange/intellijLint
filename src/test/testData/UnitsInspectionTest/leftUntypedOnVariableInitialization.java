@@ -4,11 +4,6 @@ private @interface foo {}
 public class Foo {
     public void setToBar()
     {
-        final long bar = emitsFoo();
-    }
-
-    private @foo long emitsFoo()
-    {
-        return 2;
+        final long bar = (@foo long) 2;
     }
 }
