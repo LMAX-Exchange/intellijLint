@@ -7,6 +7,7 @@ import org.junit.Assert;
 
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 abstract class Base extends LightCodeInsightFixtureTestCase {
@@ -45,11 +46,20 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
         myFixture.enableInspections(unitsInspection);
 
         List<HighlightInfo> highlightInfoList = myFixture.doHighlighting();
-        Assert.assertEquals(
+        final List<HighlightInfo> matchingInspections = highlightInfoList.stream()
+                .filter(x -> x.getDescription() != null)
+                .filter(x -> pattern.matcher(x.getDescription()).matches())
+                .collect(Collectors.toList());
+
+        Assert.assertEquals("Did not find expected number of inspections matching " + pattern.toString(),
                 count,
-                highlightInfoList.stream()
-                        .filter(x -> x.getDescription() != null)
-                        .filter(x -> pattern.matcher(x.getDescription()).matches())
-                        .count());
+                matchingInspections.size());
+
+        final List<HighlightInfo> allUnitInspections = highlightInfoList.stream()
+                .filter(x -> x.getDescription() != null)
+                .filter(x -> UNITS_DESCRIPTIONS.matcher(x.getDescription()).matches())
+                .collect(Collectors.toList());
+
+        Assert.assertEquals("Found unexpected Units inspections:", matchingInspections, allUnitInspections);
     }
 }

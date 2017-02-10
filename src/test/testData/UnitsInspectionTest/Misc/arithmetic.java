@@ -2,9 +2,8 @@
 private @interface foo {}
 
 public class Foo {
-    private @foo long emitsFoo()
+    private void foos()
     {
         @foo long test = 1 + (@foo long) 2;
-        return (@foo long) 1 + (@foo long) 2;
     }
 }

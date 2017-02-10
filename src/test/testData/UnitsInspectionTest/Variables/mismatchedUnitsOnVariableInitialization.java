@@ -12,6 +12,6 @@ public class Foo {
 
     private @bar long emitsBar()
     {
-        return 2;
+        return (@bar long) 2;
     }
 }
