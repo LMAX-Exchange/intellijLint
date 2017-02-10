@@ -83,16 +83,16 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
         return null;
     }
 
-    @Nullable String getSubTypeFQN(@Nullable PsiExpression expression)
+    @Nullable String getSubTypeFQN(@Nullable PsiElement element)
     {
-        if (expression == null)
+        if (element == null)
         {
             return null;
         }
 
-        if (expression instanceof PsiCall)
+        if (element instanceof PsiCall)
         {
-            PsiMethod psiMethod = ((PsiCall) expression).resolveMethod();
+            PsiMethod psiMethod = ((PsiCall) element).resolveMethod();
             if (psiMethod == null)
             {
                 return null;
@@ -100,9 +100,9 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             return getSubTypeFQN(psiMethod.getModifierList());
         }
 
-        if (expression instanceof PsiTypeCastExpression)
+        if (element instanceof PsiTypeCastExpression)
         {
-            PsiTypeElement castingTo = ((PsiTypeCastExpression) expression).getCastType();
+            PsiTypeElement castingTo = ((PsiTypeCastExpression) element).getCastType();
             if (castingTo == null)
             {
                 return null;
@@ -111,15 +111,20 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             return getSubTypeFQN(castingTo.getAnnotations());
         }
 
-        if (expression instanceof PsiConditionalExpression)
+        if (element instanceof PsiConditionalExpression)
         {
             //Differences between sides of expression are handled in visitor.
-            return getSubTypeFQN(((PsiConditionalExpression) expression).getThenExpression());
+            return getSubTypeFQN(((PsiConditionalExpression) element).getThenExpression());
         }
 
-        if (expression instanceof PsiVariable)
+        if (element instanceof PsiVariable)
         {
-            return getSubTypeFQN(((PsiVariable) expression).getModifierList());
+            return getSubTypeFQN(((PsiVariable) element).getModifierList());
+        }
+
+        if (element instanceof PsiReferenceExpression)
+        {
+            return getSubTypeFQN(((PsiReferenceExpression) element).resolve());
         }
 
         return null;

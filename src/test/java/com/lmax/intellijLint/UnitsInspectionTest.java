@@ -53,9 +53,9 @@ public class UnitsInspectionTest extends LightCodeInsightFixtureTestCase {
         doTest("Returning null when expecting foo");
     }
 
-//    public void testReturnVariable() throws Exception {
-//        doTest(UNITS_DESCRIPTIONS, 0);
-//    }
+    public void testReturnVariable() throws Exception {
+        doTest(UNITS_DESCRIPTIONS, 0);
+    }
 
     public void testArithmetic() throws Exception {
         doTest("Left side of expression is null and right side is foo");
