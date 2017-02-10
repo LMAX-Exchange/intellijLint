@@ -4,7 +4,9 @@ private @interface foo {}
 public class Foo {
     public void setToBar()
     {
-        @foo final long bar = emitsUntyped();
+        @foo final long bar;
+
+        bar = emitsUntyped();
     }
 
     private long emitsUntyped()
