@@ -36,11 +36,9 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
         return "LMAX";
     }
 
-    @NonNls
-    private static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";
-
-    @NonNls
-    private static final String BINARY_EXPRESSION_DESCRIPTION_TEMPLATE = "Left side of expression is %s and right side is %s";
+    static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";
+    static final String BINARY_EXPRESSION_DESCRIPTION_TEMPLATE = "Left side of expression is %s and right side is %s";
+    static final String RETURNING_DESCRIPTION_TEMPLATE = "Returning %s when expecting %s";
 
     @SuppressWarnings("PublicField")
     public final List<String> subTypeAnnotations = new ArrayList<>();
@@ -209,7 +207,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 PsiMethod psiMethod = walkUpToWrappingMethod(returnValue);
                 final String declaredSubTypeFQN = getSubTypeFQN(psiMethod != null ? psiMethod.getModifierList() : null);
 
-                inspect(returnValue, declaredSubTypeFQN, holder, "Returning %s when expecting %s");
+                inspect(returnValue, declaredSubTypeFQN, holder, RETURNING_DESCRIPTION_TEMPLATE);
             }
 
             @Override
