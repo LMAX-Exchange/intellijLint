@@ -10,7 +10,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
 import com.siyeh.ig.ui.ExternalizableStringSet;
 import org.jetbrains.annotations.Nls;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,7 +19,7 @@ import java.util.*;
 @SuppressWarnings("WeakerAccess") //Needs to be public as is used in plugin.
 @Storage("com.lmax.intellijLint.units.xml")
 public class UnitsInspection extends BaseJavaLocalInspectionTool implements PersistentStateComponent<UnitsInspection.State> {
-    private static final Logger LOG = Logger.getInstance("#intellijLint.UnitsInspection");
+    private static final Logger LOG = Logger.getInstance("#intellijLint.UnitsInspectionTests");
 
     @Nls
     @NotNull
@@ -36,9 +35,9 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
         return "LMAX";
     }
 
-    static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";
-    static final String BINARY_EXPRESSION_DESCRIPTION_TEMPLATE = "Left side of expression is %s and right side is %s";
-    static final String RETURNING_DESCRIPTION_TEMPLATE = "Returning %s when expecting %s";
+    public static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";
+    public static final String BINARY_EXPRESSION_DESCRIPTION_TEMPLATE = "Left side of expression is %s and right side is %s";
+    public static final String RETURNING_DESCRIPTION_TEMPLATE = "Returning %s when expecting %s";
 
     @SuppressWarnings("PublicField")
     public final List<String> subTypeAnnotations = new ArrayList<>();
