@@ -1,0 +1,5 @@
+package com.lmax.intellijLint.Units;
+
+public enum ResolutionFailureReason {
+    PSI_ELEMENT_NULL, COULD_NOT_RESOLVE_ANNOTATION, COULD_NOT_RESOLVE_METHOD, UNEXPECTED_PSI_ELEMENT_TYPE, COULD_NOT_RESOLVE_CAST_TYPE, NONE
+}

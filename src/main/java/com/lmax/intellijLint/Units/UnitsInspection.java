@@ -19,8 +19,6 @@ import java.util.*;
 @SuppressWarnings("WeakerAccess") //Needs to be public as is used in plugin.
 @Storage("com.lmax.intellijLint.units.xml")
 public class UnitsInspection extends BaseJavaLocalInspectionTool implements PersistentStateComponent<UnitsInspection.State> {
-    private static final Logger LOG = Logger.getInstance("#intellijLint.UnitsInspectionTests");
-
     @Nls
     @NotNull
     @Override
@@ -41,114 +39,6 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     @SuppressWarnings("PublicField")
     public final List<String> subTypeAnnotations = new ArrayList<>();
-
-    private final static WeakHashMap<String, Boolean> subTypeCache = new WeakHashMap<>();
-
-    boolean isSubType(PsiAnnotation annotation)
-    {
-        if (annotation.getQualifiedName() == null)
-        {
-            LOG.warn("Couldn't get qualified name for annotation: " + annotation.getText());
-            return false;
-        }
-        return subTypeCache.computeIfAbsent(annotation.getQualifiedName(),
-                (x) -> annotationClassHasSubtypeAnnotation(resolve(annotation)));
-    }
-
-    @Nullable String getSubTypeFQN(PsiModifierList modifierList)
-    {
-        if (modifierList == null)
-        {
-            return null;
-        }
-
-        return getSubTypeFQN(modifierList.getAnnotations());
-    }
-
-    @Nullable String getSubTypeFQN(PsiAnnotation[] annotations)
-    {
-        if (annotations == null || annotations.length == 0)
-        {
-            return null;
-        }
-
-        for (PsiAnnotation annotation : annotations)
-        {
-            if(isSubType(annotation))
-            {
-                return annotation.getQualifiedName();
-            }
-        }
-        return null;
-    }
-
-    @Nullable String getSubTypeFQN(@Nullable PsiElement element)
-    {
-        if (element == null)
-        {
-            return null;
-        }
-
-        if (element instanceof PsiCall)
-        {
-            PsiMethod psiMethod = ((PsiCall) element).resolveMethod();
-            if (psiMethod == null)
-            {
-                return null;
-            }
-            return getSubTypeFQN(psiMethod.getModifierList());
-        }
-
-        if (element instanceof PsiTypeCastExpression)
-        {
-            PsiTypeElement castingTo = ((PsiTypeCastExpression) element).getCastType();
-            if (castingTo == null)
-            {
-                return null;
-            }
-
-            return getSubTypeFQN(castingTo.getAnnotations());
-        }
-
-        if (element instanceof PsiConditionalExpression)
-        {
-            //Differences between sides of expression are handled in visitor.
-            return getSubTypeFQN(((PsiConditionalExpression) element).getThenExpression());
-        }
-
-        if (element instanceof PsiVariable)
-        {
-            return getSubTypeFQN(((PsiVariable) element).getModifierList());
-        }
-
-        if (element instanceof PsiReferenceExpression)
-        {
-            return getSubTypeFQN(((PsiReferenceExpression) element).resolve());
-        }
-
-        return null;
-    }
-
-    private boolean annotationClassHasSubtypeAnnotation(@Nullable PsiClass aClass) {
-        if (aClass == null)
-        {
-            return false;
-        }
-
-        final PsiModifierList modifierList = aClass.getModifierList();
-
-        return modifierList != null && AnnotationUtil.isAnnotated(aClass, subTypeAnnotations);
-    }
-
-    private PsiClass resolve(PsiAnnotation annotation) {
-        final String qualifiedName = annotation.getQualifiedName();
-        if (qualifiedName == null)
-        {
-            return null;
-        }
-        return JavaPsiFacade.getInstance(annotation.getProject())
-                .findClass(qualifiedName, annotation.getResolveScope());
-    }
 
     private PsiMethod walkUpToWrappingMethod(PsiElement element)
     {
@@ -178,7 +68,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             public void visitAssignmentExpression(PsiAssignmentExpression expression) {
                 super.visitAssignmentExpression(expression);
 
-                String declaredSubTypeFQN = getSubTypeFQN(expression.getLExpression());
+                String declaredSubTypeFQN = SubType.getSubType(expression.getLExpression()).getSubtypeFQN();
                 inspect(expression.getRExpression(), declaredSubTypeFQN, holder);
             }
 
@@ -188,7 +78,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
                 final PsiExpression initializer = field.getInitializer();
 
-                final String declaredSubTypeFQN = getSubTypeFQN(field.getModifierList());
+                final String declaredSubTypeFQN = SubType.getSubType(field.getModifierList()).getSubtypeFQN();
                 inspect(initializer, declaredSubTypeFQN, holder);
             }
 
@@ -198,7 +88,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
                 final PsiExpression initializer = variable.getInitializer();
 
-                final String declaredSubTypeFQN = getSubTypeFQN(variable.getModifierList());
+                final String declaredSubTypeFQN = SubType.getSubType(variable.getModifierList()).getSubtypeFQN();
                 inspect(initializer, declaredSubTypeFQN, holder);
             }
 
@@ -209,7 +99,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 final PsiExpression returnValue = statement.getReturnValue();
 
                 PsiMethod psiMethod = walkUpToWrappingMethod(returnValue);
-                final String declaredSubTypeFQN = getSubTypeFQN(psiMethod != null ? psiMethod.getModifierList() : null);
+                final String declaredSubTypeFQN = SubType.getSubType(psiMethod != null ? psiMethod.getModifierList() : null).getSubtypeFQN();
 
                 inspect(returnValue, declaredSubTypeFQN, holder, RETURNING_DESCRIPTION_TEMPLATE);
             }
@@ -224,7 +114,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return;
                 }
 
-                inspect(expression, getSubTypeFQN(expression.getLOperand()), getSubTypeFQN(rOperand), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
+                inspect(expression, SubType.getSubType(expression.getLOperand()).getSubtypeFQN(), SubType.getSubType(rOperand).getSubtypeFQN(), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
             }
 
             @Override
@@ -237,7 +127,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return;
                 }
 
-                inspect(expression, getSubTypeFQN(expression.getThenExpression()), getSubTypeFQN(elseExpression), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
+                inspect(expression, SubType.getSubType(expression.getThenExpression()).getSubtypeFQN(), SubType.getSubType(elseExpression).getSubtypeFQN(), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
             }
         };
     }
@@ -249,7 +139,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     private void inspect(@Nullable PsiExpression initializer, @Nullable String declaredSubTypeFQN, @NotNull ProblemsHolder holder, String descriptionTemplate) {
         if (initializer != null)
         {
-            String subTypeFQN = getSubTypeFQN(initializer);
+            String subTypeFQN = SubType.getSubType(initializer).getSubtypeFQN();
             inspect(initializer, subTypeFQN, declaredSubTypeFQN, holder, descriptionTemplate);
         }
     }
@@ -263,7 +153,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     public JComponent createOptionsPanel() {
         return SpecialAnnotationsUtil.createSpecialAnnotationsListControl(
-                subTypeAnnotations, "Sub Type annotations");
+                SubType.subTypeAnnotations, "Sub Type annotations");
     }
 
     public boolean isEnabledByDefault() {
@@ -280,7 +170,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     @Override
     public void loadState(UnitsInspection.State state) {
-        this.subTypeAnnotations.addAll(state.subTypeAnnotations);
+        SubType.setAnnotations(state.subTypeAnnotations);
     }
 
     public class State {
