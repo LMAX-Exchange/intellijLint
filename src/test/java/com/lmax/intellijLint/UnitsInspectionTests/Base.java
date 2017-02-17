@@ -2,7 +2,7 @@ package com.lmax.intellijLint.UnitsInspectionTests;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import com.lmax.intellijLint.UnitsInspection;
+import com.lmax.intellijLint.Units.UnitsInspection;
 import org.junit.Assert;
 
 import java.util.List;
