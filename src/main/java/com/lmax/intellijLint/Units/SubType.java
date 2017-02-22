@@ -185,6 +185,11 @@ public class SubType {
             return getSubType(((PsiReferenceExpression) element).resolve());
         }
 
+        if (element instanceof PsiMethod)
+        {
+            return getSubType(element, ((PsiMethod) element).getModifierList());
+        }
+
         return new SubType(element, ResolutionFailureReason.UNEXPECTED_PSI_ELEMENT_TYPE);
     }
 

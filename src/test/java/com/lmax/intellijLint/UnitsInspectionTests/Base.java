@@ -6,7 +6,6 @@ import com.lmax.intellijLint.Units.SubType;
 import com.lmax.intellijLint.Units.UnitsInspection;
 import org.junit.Assert;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -42,7 +41,7 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
         expectInspectionMatching(UNITS_DESCRIPTIONS, 0);
     }
 
-    void expectInspectionMatching(Pattern pattern, int count) {
+    private void expectInspectionMatching(Pattern pattern, int count) {
         myFixture.configureByFile(getTestDirectoryName() + ".java");
         UnitsInspection unitsInspection = new UnitsInspection();
         SubType.setAnnotations(Arrays.asList("org.checkerframework.framework.qual.SubtypeOf"));

@@ -1,12 +1,10 @@
 package com.lmax.intellijLint.Units;
 
-import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.codeInspection.util.SpecialAnnotationsUtil;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
 import com.siyeh.ig.ui.ExternalizableStringSet;
 import org.jetbrains.annotations.Nls;
@@ -78,7 +76,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
                 final PsiExpression initializer = field.getInitializer();
 
-                final String declaredSubTypeFQN = SubType.getSubType(field.getModifierList()).getSubtypeFQN();
+                final String declaredSubTypeFQN = SubType.getSubType(field).getSubtypeFQN();
                 inspect(initializer, declaredSubTypeFQN, holder);
             }
 
@@ -88,7 +86,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
                 final PsiExpression initializer = variable.getInitializer();
 
-                final String declaredSubTypeFQN = SubType.getSubType(variable.getModifierList()).getSubtypeFQN();
+                final String declaredSubTypeFQN = SubType.getSubType(variable).getSubtypeFQN();
                 inspect(initializer, declaredSubTypeFQN, holder);
             }
 
@@ -99,7 +97,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 final PsiExpression returnValue = statement.getReturnValue();
 
                 PsiMethod psiMethod = walkUpToWrappingMethod(returnValue);
-                final String declaredSubTypeFQN = SubType.getSubType(psiMethod != null ? psiMethod.getModifierList() : null).getSubtypeFQN();
+                final String declaredSubTypeFQN = SubType.getSubType(psiMethod).getSubtypeFQN();
 
                 inspect(returnValue, declaredSubTypeFQN, holder, RETURNING_DESCRIPTION_TEMPLATE);
             }
