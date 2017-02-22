@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import static com.lmax.intellijLint.Units.ResolutionFailureReason.NONE;
 
 public class SubType {
-    private final PsiElement element;
+    private final @NotNull PsiElement element;
     private final @Nullable String subtypeFQN;
     private final boolean resolved;
     private final ResolutionFailureReason resolutionFailureReason;
@@ -21,7 +21,7 @@ public class SubType {
 
     //Could not resolve
     @SuppressWarnings("NullableProblems")
-    private SubType(PsiElement element, ResolutionFailureReason resolutionFailureReason)
+    private SubType(@NotNull PsiElement element, ResolutionFailureReason resolutionFailureReason)
     {
         this.element = element;
         subtypeFQN = null;
@@ -29,7 +29,7 @@ public class SubType {
         this.resolutionFailureReason = resolutionFailureReason;
     }
 
-    private SubType(PsiElement element)
+    private SubType(@NotNull PsiElement element)
     {
         this.element = element;
         subtypeFQN = null;
@@ -37,7 +37,7 @@ public class SubType {
         resolutionFailureReason = NONE;
     }
 
-    private SubType(PsiElement element, @Nullable String subtypeFQN, boolean resolved)
+    private SubType(@NotNull PsiElement element, @Nullable String subtypeFQN, boolean resolved)
     {
         this.element = element;
         this.subtypeFQN = subtypeFQN;
@@ -49,6 +49,16 @@ public class SubType {
     public String getSubtypeFQN()
     {
         return subtypeFQN;
+    }
+
+    public static void setAnnotations(Collection<String> subTypeAnnotations) {
+        SubType.subTypeAnnotations.clear();
+        SubType.subTypeAnnotations.addAll(subTypeAnnotations);
+    }
+
+    @NotNull
+    public PsiElement getPsiElement() {
+        return element;
     }
 
     @Override
@@ -137,6 +147,7 @@ public class SubType {
 
     private static PsiClass resolve(PsiAnnotation annotation) {
         final String qualifiedName = annotation.getQualifiedName();
+        assert qualifiedName != null; //Checked in getSubType(PsiElement, PsiAnnotation[])
         return JavaPsiFacade.getInstance(annotation.getProject())
                 .findClass(qualifiedName, annotation.getResolveScope());
     }
@@ -191,10 +202,5 @@ public class SubType {
         }
 
         return new SubType(element, ResolutionFailureReason.UNEXPECTED_PSI_ELEMENT_TYPE);
-    }
-
-    public static void setAnnotations(Collection<String> subTypeAnnotations) {
-        SubType.subTypeAnnotations.clear();
-        SubType.subTypeAnnotations.addAll(subTypeAnnotations);
     }
 }

@@ -66,40 +66,40 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             public void visitAssignmentExpression(PsiAssignmentExpression expression) {
                 super.visitAssignmentExpression(expression);
 
-                String declaredSubTypeFQN = SubType.getSubType(expression.getLExpression()).getSubtypeFQN();
-                inspect(expression.getRExpression(), declaredSubTypeFQN, holder);
+                SubType declared = SubType.getSubType(expression.getLExpression());
+                SubType assigned = SubType.getSubType(expression.getRExpression());
+                inspect(assigned, declared, holder);
             }
 
             @Override
             public void visitField(PsiField field) {
                 super.visitField(field);
 
-                final PsiExpression initializer = field.getInitializer();
-
-                final String declaredSubTypeFQN = SubType.getSubType(field).getSubtypeFQN();
-                inspect(initializer, declaredSubTypeFQN, holder);
+                final SubType initializer = SubType.getSubType(field.getInitializer());
+                final SubType declared = SubType.getSubType(field);
+                inspect(initializer, declared, holder);
             }
 
             @Override
             public void visitLocalVariable(PsiLocalVariable variable) {
                 super.visitLocalVariable(variable);
 
-                final PsiExpression initializer = variable.getInitializer();
+                final SubType initializer = SubType.getSubType(variable.getInitializer());
 
-                final String declaredSubTypeFQN = SubType.getSubType(variable).getSubtypeFQN();
-                inspect(initializer, declaredSubTypeFQN, holder);
+                final SubType declared = SubType.getSubType(variable);
+                inspect(initializer, declared, holder);
             }
 
             @Override
             public void visitReturnStatement(PsiReturnStatement statement) {
                 super.visitReturnStatement(statement);
 
-                final PsiExpression returnValue = statement.getReturnValue();
+                final SubType returnValue = SubType.getSubType(statement.getReturnValue());
 
-                PsiMethod psiMethod = walkUpToWrappingMethod(returnValue);
-                final String declaredSubTypeFQN = SubType.getSubType(psiMethod).getSubtypeFQN();
+                PsiMethod psiMethod = walkUpToWrappingMethod(statement.getReturnValue());
+                final SubType declared = SubType.getSubType(psiMethod);
 
-                inspect(returnValue, declaredSubTypeFQN, holder, RETURNING_DESCRIPTION_TEMPLATE);
+                inspect(returnValue, declared, holder, RETURNING_DESCRIPTION_TEMPLATE);
             }
 
             @Override
@@ -112,7 +112,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return;
                 }
 
-                inspect(expression, SubType.getSubType(expression.getLOperand()).getSubtypeFQN(), SubType.getSubType(rOperand).getSubtypeFQN(), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
+                inspect(expression, SubType.getSubType(expression.getLOperand()), SubType.getSubType(rOperand), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
             }
 
             @Override
@@ -125,29 +125,32 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return;
                 }
 
-                inspect(expression, SubType.getSubType(expression.getThenExpression()).getSubtypeFQN(), SubType.getSubType(elseExpression).getSubtypeFQN(), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
+                inspect(expression, SubType.getSubType(expression.getThenExpression()), SubType.getSubType(elseExpression), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
             }
         };
     }
 
-    private void inspect(PsiExpression initializer, String declaredSubTypeFQN, @NotNull ProblemsHolder holder) {
-        inspect(initializer, declaredSubTypeFQN, holder, DESCRIPTION_TEMPLATE);
+    private void inspect(SubType potentiallyProblematic, SubType checkAgainst, @NotNull ProblemsHolder holder)
+    {
+        inspect(potentiallyProblematic, checkAgainst, holder, DESCRIPTION_TEMPLATE);
     }
 
-    private void inspect(@Nullable PsiExpression initializer, @Nullable String declaredSubTypeFQN, @NotNull ProblemsHolder holder, String descriptionTemplate) {
-        if (initializer != null)
-        {
-            String subTypeFQN = SubType.getSubType(initializer).getSubtypeFQN();
-            inspect(initializer, subTypeFQN, declaredSubTypeFQN, holder, descriptionTemplate);
+    private void inspect(SubType potentiallyProblematic, SubType checkAgainst, @NotNull ProblemsHolder holder, String descriptionTemplate)
+    {
+        if (!Objects.equals(potentiallyProblematic, checkAgainst)) {
+            String description = String.format(descriptionTemplate, potentiallyProblematic.getSubtypeFQN(), checkAgainst.getSubtypeFQN());
+            holder.registerProblem(potentiallyProblematic.getPsiElement(), description);
         }
     }
 
-    private void inspect(PsiExpression potentiallyProblematicExpression, String leftSubtypeFQN, String rightSubTypeFQN, @NotNull ProblemsHolder holder, String descriptionTemplate) {
-        if (!Objects.equals(leftSubtypeFQN, rightSubTypeFQN)) {
-            String description = String.format(descriptionTemplate, leftSubtypeFQN, rightSubTypeFQN);
-            holder.registerProblem(potentiallyProblematicExpression, description);
+    private void inspect(PsiElement element, SubType left, SubType right, @NotNull ProblemsHolder holder, String descriptionTemplate)
+    {
+        if (!Objects.equals(left, right)) {
+            String description = String.format(descriptionTemplate, left.getSubtypeFQN(), right.getSubtypeFQN());
+            holder.registerProblem(element, description);
         }
     }
+
 
     public JComponent createOptionsPanel() {
         return SpecialAnnotationsUtil.createSpecialAnnotationsListControl(
