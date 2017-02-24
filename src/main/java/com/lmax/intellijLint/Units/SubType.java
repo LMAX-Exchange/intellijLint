@@ -187,15 +187,20 @@ public class SubType {
 
         if (elementToResolve instanceof PsiConditionalExpression)
         {
-            //Differences between sides of expression are handled in visitor.
+            final PsiExpression elseExpression = ((PsiConditionalExpression) elementToResolve).getElseExpression();
             final PsiExpression thenExpression = ((PsiConditionalExpression) elementToResolve).getThenExpression();
 
             if (thenExpression == null)
             {
                 return new SubType(elementToResolve, ResolutionFailureReason.CONDITIONAL_WITHOUT_THEN_BLOCK);
             }
+            final SubType thenSubType = getSubType(thenExpression);
 
-            return getSubType(thenExpression);
+            if (elseExpression != null && !Objects.equals(getSubType(elseExpression), thenSubType)) {
+                //Differences between sides of expression are handled in visitor.
+                return new SubType(elementToResolve, ResolutionFailureReason.MISMATCHED_CONDITIONAL);
+            }
+            return thenSubType;
         }
 
         if (elementToResolve instanceof PsiVariable)
@@ -225,6 +230,28 @@ public class SubType {
             return new SubType(elementToResolve);
         }
 
+        if (elementToResolve instanceof PsiBinaryExpression)
+        {
+            final PsiExpression left = ((PsiBinaryExpression) elementToResolve).getLOperand();
+            final PsiExpression right = ((PsiBinaryExpression) elementToResolve).getROperand();
+
+            if (right == null)
+            {
+                return new SubType(elementToResolve, ResolutionFailureReason.ONE_SIDED_BINARY_EXPRESSION);
+            }
+            final SubType thenSubType = getSubType(right);
+
+            if (!Objects.equals(getSubType(left), thenSubType)) {
+                //Differences between sides of expression are handled in visitor.
+                return new SubType(elementToResolve, ResolutionFailureReason.MISMATCHED_BINARY_EXPRESSION);
+            }
+            return thenSubType;
+        }
+
         return new SubType(elementToResolve, ResolutionFailureReason.UNEXPECTED_PSI_ELEMENT_TYPE);
+    }
+
+    public ResolutionFailureReason getFaliureReason() {
+        return resolutionFailureReason;
     }
 }

@@ -162,9 +162,20 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     private void inspect(PsiElement element, SubType left, SubType right, @NotNull ProblemsHolder holder, String descriptionTemplate)
     {
         if (!Objects.equals(left, right)) {
+            if (isIgnoredResolutionFailureReason(left) || isIgnoredResolutionFailureReason(right))
+            {
+                //Will get caught by visitConditionalExpression
+                return;
+            }
             String description = String.format(descriptionTemplate, left.getSubtypeFQN(), right.getSubtypeFQN());
             holder.registerProblem(element, description);
         }
+    }
+
+    private boolean isIgnoredResolutionFailureReason(SubType subType) {
+        final ResolutionFailureReason faliureReason = subType.getFaliureReason();
+        return faliureReason == ResolutionFailureReason.MISMATCHED_CONDITIONAL ||
+                faliureReason == ResolutionFailureReason.MISMATCHED_BINARY_EXPRESSION;
     }
 
 
