@@ -75,6 +75,12 @@ public class SubType {
             return false;
         }
 
+        //noinspection SimplifiableIfStatement easier to read, imo.
+        if (this.subtypeFQN == null && other.subtypeFQN == null)
+        {
+            return true;
+        }
+
         return other.subtypeFQN != null && other.subtypeFQN.equals(this.subtypeFQN);
     }
 
@@ -137,70 +143,88 @@ public class SubType {
     }
 
     private static boolean annotationClassHasSubtypeAnnotation(@Nullable PsiClass aClass) {
-        if (aClass == null)
-        {
-            return false;
-        }
-
-        return AnnotationUtil.isAnnotated(aClass, subTypeAnnotations);
+        return aClass != null && AnnotationUtil.isAnnotated(aClass, subTypeAnnotations);
     }
 
     private static PsiClass resolve(PsiAnnotation annotation) {
         final String qualifiedName = annotation.getQualifiedName();
-        assert qualifiedName != null; //Checked in getSubType(PsiElement, PsiAnnotation[])
+        if (qualifiedName == null)
+        {
+            throw new IllegalArgumentException("Annotation may not be null"); //Checked in getSubType(PsiElement, PsiAnnotation[])
+        }
         return JavaPsiFacade.getInstance(annotation.getProject())
                 .findClass(qualifiedName, annotation.getResolveScope());
     }
 
-    public static SubType getSubType(PsiElement element)
+    public static SubType getSubType(@NotNull PsiElement elementToResolve)
     {
-        if (element == null)
+        if (elementToResolve instanceof PsiNewExpression)
         {
-            return new SubType(null, ResolutionFailureReason.PSI_ELEMENT_NULL);
+            //Classes can't be annotated (there's no point).
+            return new SubType(elementToResolve); //TODO: wrapping types, i.e. optionalLong etc
         }
 
-        if (element instanceof PsiCall)
+        if (elementToResolve instanceof PsiCall)
         {
-            PsiMethod psiMethod = ((PsiCall) element).resolveMethod();
+            PsiMethod psiMethod = ((PsiCall) elementToResolve).resolveMethod();
             if (psiMethod == null)
             {
-                return new SubType(element, ResolutionFailureReason.COULD_NOT_RESOLVE_METHOD);
+                return new SubType(elementToResolve, ResolutionFailureReason.COULD_NOT_RESOLVE_METHOD);
             }
-            return getSubType(element, psiMethod.getModifierList().getAnnotations());
+            return getSubType(elementToResolve, psiMethod.getModifierList().getAnnotations());
         }
 
-        if (element instanceof PsiTypeCastExpression)
+        if (elementToResolve instanceof PsiTypeCastExpression)
         {
-            PsiTypeElement castingTo = ((PsiTypeCastExpression) element).getCastType();
+            PsiTypeElement castingTo = ((PsiTypeCastExpression) elementToResolve).getCastType();
             if (castingTo == null)
             {
-                return new SubType(element, ResolutionFailureReason.COULD_NOT_RESOLVE_CAST_TYPE);
+                return new SubType(elementToResolve, ResolutionFailureReason.COULD_NOT_RESOLVE_CAST_TYPE);
             }
 
-            return getSubType(element, castingTo.getAnnotations());
+            return getSubType(elementToResolve, castingTo.getAnnotations());
         }
 
-        if (element instanceof PsiConditionalExpression)
+        if (elementToResolve instanceof PsiConditionalExpression)
         {
             //Differences between sides of expression are handled in visitor.
-            return getSubType(((PsiConditionalExpression) element).getThenExpression());
+            final PsiExpression thenExpression = ((PsiConditionalExpression) elementToResolve).getThenExpression();
+
+            if (thenExpression == null)
+            {
+                return new SubType(elementToResolve, ResolutionFailureReason.CONDITIONAL_WITHOUT_THEN_BLOCK);
+            }
+
+            return getSubType(thenExpression);
         }
 
-        if (element instanceof PsiVariable)
+        if (elementToResolve instanceof PsiVariable)
         {
-            return getSubType(element, ((PsiVariable) element).getModifierList());
+            return getSubType(elementToResolve, ((PsiVariable) elementToResolve).getModifierList());
         }
 
-        if (element instanceof PsiReferenceExpression)
+        if (elementToResolve instanceof PsiReferenceExpression)
         {
-            return getSubType(((PsiReferenceExpression) element).resolve());
+            final PsiElement resolvedReference = ((PsiReferenceExpression) elementToResolve).resolve();
+            if (resolvedReference == null)
+            {
+                return new SubType(elementToResolve, ResolutionFailureReason.COULD_NOT_RESOLVE_REFERENCE);
+            }
+
+            return getSubType(resolvedReference);
         }
 
-        if (element instanceof PsiMethod)
+        if (elementToResolve instanceof PsiMethod)
         {
-            return getSubType(element, ((PsiMethod) element).getModifierList());
+            return getSubType(elementToResolve, ((PsiMethod) elementToResolve).getModifierList());
         }
 
-        return new SubType(element, ResolutionFailureReason.UNEXPECTED_PSI_ELEMENT_TYPE);
+        if (elementToResolve instanceof PsiLiteral)
+        {
+            //Should be a cast expr if we want it to be annotated.
+            return new SubType(elementToResolve);
+        }
+
+        return new SubType(elementToResolve, ResolutionFailureReason.UNEXPECTED_PSI_ELEMENT_TYPE);
     }
 }

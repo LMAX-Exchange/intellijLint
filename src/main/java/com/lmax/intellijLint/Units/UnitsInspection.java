@@ -84,7 +84,14 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             public void visitLocalVariable(PsiLocalVariable variable) {
                 super.visitLocalVariable(variable);
 
-                final SubType initializer = SubType.getSubType(variable.getInitializer());
+                final PsiExpression initializerExpression = variable.getInitializer();
+
+                if (initializerExpression == null)
+                {
+                    return;
+                }
+
+                final SubType initializer = SubType.getSubType(initializerExpression);
 
                 final SubType declared = SubType.getSubType(variable);
                 inspect(initializer, declared, holder);
@@ -94,9 +101,16 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             public void visitReturnStatement(PsiReturnStatement statement) {
                 super.visitReturnStatement(statement);
 
-                final SubType returnValue = SubType.getSubType(statement.getReturnValue());
+                final PsiExpression returnValueExpr = statement.getReturnValue();
 
-                PsiMethod psiMethod = walkUpToWrappingMethod(statement.getReturnValue());
+                if (returnValueExpr == null)
+                {
+                    return; // void return, won't have annotation.
+                }
+
+                final SubType returnValue = SubType.getSubType(returnValueExpr);
+
+                PsiMethod psiMethod = walkUpToWrappingMethod(returnValueExpr);
                 final SubType declared = SubType.getSubType(psiMethod);
 
                 inspect(returnValue, declared, holder, RETURNING_DESCRIPTION_TEMPLATE);
@@ -125,7 +139,12 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return;
                 }
 
-                inspect(expression, SubType.getSubType(expression.getThenExpression()), SubType.getSubType(elseExpression), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
+                final PsiExpression thenExpression = expression.getThenExpression();
+                if (thenExpression == null)
+                {
+                    throw new IllegalStateException("No then expr on conditional?!");
+                }
+                inspect(expression, SubType.getSubType(thenExpression), SubType.getSubType(elseExpression), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
             }
         };
     }
@@ -137,10 +156,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     private void inspect(SubType potentiallyProblematic, SubType checkAgainst, @NotNull ProblemsHolder holder, String descriptionTemplate)
     {
-        if (!Objects.equals(potentiallyProblematic, checkAgainst)) {
-            String description = String.format(descriptionTemplate, potentiallyProblematic.getSubtypeFQN(), checkAgainst.getSubtypeFQN());
-            holder.registerProblem(potentiallyProblematic.getPsiElement(), description);
-        }
+        inspect(potentiallyProblematic.getPsiElement(), potentiallyProblematic, checkAgainst, holder, descriptionTemplate);
     }
 
     private void inspect(PsiElement element, SubType left, SubType right, @NotNull ProblemsHolder holder, String descriptionTemplate)
