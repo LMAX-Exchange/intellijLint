@@ -7,6 +7,7 @@ import com.lmax.intellijLint.Units.UnitsInspection;
 import org.junit.Assert;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -53,9 +54,18 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
                 .filter(x -> pattern.matcher(x.getDescription()).matches())
                 .collect(Collectors.toList());
 
-        Assert.assertEquals("Did not find expected number of inspections matching " + pattern.toString(),
-                count,
-                matchingInspections.size());
+        if (count == 0)
+        {
+            Assert.assertEquals("Expected no inspections matching " + pattern.toString(),
+                    Collections.emptyList(),
+                    matchingInspections);
+        }
+        else
+        {
+            Assert.assertEquals("Did not find expected number of inspections matching " + pattern.toString(),
+                    count,
+                    matchingInspections.size());
+        }
 
         final List<HighlightInfo> allUnitInspections = highlightInfoList.stream()
                 .filter(x -> x.getDescription() != null)
