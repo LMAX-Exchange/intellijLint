@@ -68,4 +68,12 @@ public class Misc extends Base {
     public void testCorrectReturnThis() throws Exception {
         expectNoInspections();
     }
+
+    public void testPolyadicArithmetic() throws Exception {
+        expectInspection("Found null when rest of expression is foo");
+    }
+
+    public void testCorrectPolyadicArithmetic() throws Exception {
+        expectNoInspections();
+    }
 }

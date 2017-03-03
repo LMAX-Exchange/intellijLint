@@ -252,6 +252,12 @@ public class SubType {
             return thenSubType;
         }
 
+        if (elementToResolve instanceof PsiPolyadicExpression)
+        {
+            //Differences between parts of expression are handled in visitor.
+            return getSubType(((PsiPolyadicExpression) elementToResolve).getOperands()[0]);
+        }
+
         if (elementToResolve instanceof PsiPrefixExpression)
         {
             final PsiExpression operand = ((PsiPrefixExpression) elementToResolve).getOperand();

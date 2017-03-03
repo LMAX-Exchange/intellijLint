@@ -17,6 +17,7 @@ import java.util.*;
 @SuppressWarnings("WeakerAccess") //Needs to be public as is used in plugin.
 @Storage("com.lmax.intellijLint.units.xml")
 public class UnitsInspection extends BaseJavaLocalInspectionTool implements PersistentStateComponent<UnitsInspection.State> {
+
     @Nls
     @NotNull
     @Override
@@ -35,6 +36,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     public static final String BINARY_EXPRESSION_DESCRIPTION_TEMPLATE = "Left side of expression is %s and right side is %s";
     public static final String RETURNING_DESCRIPTION_TEMPLATE = "Returning %s when expecting %s";
     public static final String FAILED_TO_RESOLVE = "Failed to resolve subtype on %s due to %s";
+    public static final String POLYADIC_MISMATCH = "Found %s when rest of expression is %s";
 
     @SuppressWarnings("PublicField")
     public final List<String> subTypeAnnotations = new ArrayList<>();
@@ -158,6 +160,22 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     throw new IllegalStateException("No then expr on conditional?!");
                 }
                 inspect(expression, SubType.getSubType(thenExpression), SubType.getSubType(elseExpression), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
+            }
+
+            @Override
+            public void visitPolyadicExpression(PsiPolyadicExpression expression) {
+                super.visitPolyadicExpression(expression);
+
+                SubType last = null;
+                for (PsiExpression e: expression.getOperands()) {
+                    SubType current = SubType.getSubType(e);
+                    if (last != null)
+                    {
+                        inspect(expression, current, last, holder, POLYADIC_MISMATCH);
+                    }
+
+                    last = current;
+                }
             }
         };
     }
