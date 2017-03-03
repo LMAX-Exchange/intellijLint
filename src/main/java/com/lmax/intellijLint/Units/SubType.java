@@ -154,7 +154,9 @@ public class SubType {
 
     public static SubType getSubType(@NotNull PsiElement elementToResolve)
     {
-        if (elementToResolve instanceof PsiNewExpression)
+        if (elementToResolve instanceof PsiNewExpression ||
+                elementToResolve instanceof PsiThisExpression ||
+                elementToResolve instanceof PsiInstanceOfExpression)
         {
             //Classes can't be annotated (there's no point).
             return new SubType(elementToResolve); //TODO: wrapping types, i.e. optionalLong etc

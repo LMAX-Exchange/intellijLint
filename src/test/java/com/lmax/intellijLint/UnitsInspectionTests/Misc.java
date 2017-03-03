@@ -60,4 +60,12 @@ public class Misc extends Base {
     public void testCorrectParenthesized() throws Exception {
         expectNoInspections();
     }
+
+    public void testReturnThis() throws Exception {
+        expectInspection("Returning null when expecting foo");
+    }
+
+    public void testCorrectReturnThis() throws Exception {
+        expectNoInspections();
+    }
 }
