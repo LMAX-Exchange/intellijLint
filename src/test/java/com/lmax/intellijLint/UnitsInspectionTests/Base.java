@@ -17,7 +17,8 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
     private static final Stream<String> DESCRIPTION_TEMPLATES = Stream.of(
             UnitsInspection.DESCRIPTION_TEMPLATE,
             UnitsInspection.RETURNING_DESCRIPTION_TEMPLATE,
-            UnitsInspection.BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
+            UnitsInspection.BINARY_EXPRESSION_DESCRIPTION_TEMPLATE,
+            UnitsInspection.FAILED_TO_RESOLVE);
     private static final String TEMPLATES_AS_REGEX_GROUPS = DESCRIPTION_TEMPLATES
             .map(s -> s.replace("%s", ".*"))
             .map(s -> "(" + s + ")")

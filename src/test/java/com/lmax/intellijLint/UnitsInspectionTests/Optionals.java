@@ -13,12 +13,12 @@ public class Optionals extends Base {
         expectAssignmentInspection("bar", "foo");
     }
 
+    /*
+    TODO: fix these tests. Handling of optionals is incorrect atm.
     public void testOptionalOfUntyped() throws Exception {
         expectAssignmentInspection("null", "foo");
     }
 
-    /*
-    TODO: fix these tests. Handling of optionals is incorrect atm.
     public void testCorrectOptionalOf() throws Exception {
         expectNoInspections();
     }

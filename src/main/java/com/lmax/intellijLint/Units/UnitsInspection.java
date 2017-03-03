@@ -34,6 +34,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     public static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";
     public static final String BINARY_EXPRESSION_DESCRIPTION_TEMPLATE = "Left side of expression is %s and right side is %s";
     public static final String RETURNING_DESCRIPTION_TEMPLATE = "Returning %s when expecting %s";
+    public static final String FAILED_TO_RESOLVE = "Failed to resolve subtype on %s due to %s";
 
     @SuppressWarnings("PublicField")
     public final List<String> subTypeAnnotations = new ArrayList<>();
@@ -66,8 +67,14 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             public void visitAssignmentExpression(PsiAssignmentExpression expression) {
                 super.visitAssignmentExpression(expression);
 
+                final PsiExpression initalizerExpr = expression.getRExpression();
+                if (initalizerExpr == null)
+                {
+                    return;
+                }
+
                 SubType declared = SubType.getSubType(expression.getLExpression());
-                SubType assigned = SubType.getSubType(expression.getRExpression());
+                SubType assigned = SubType.getSubType(initalizerExpr);
                 inspect(assigned, declared, holder);
             }
 
@@ -75,7 +82,13 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             public void visitField(PsiField field) {
                 super.visitField(field);
 
-                final SubType initializer = SubType.getSubType(field.getInitializer());
+                final PsiExpression initializerExpr = field.getInitializer();
+                if (initializerExpr == null)
+                {
+                    return;
+                }
+
+                final SubType initializer = SubType.getSubType(initializerExpr);
                 final SubType declared = SubType.getSubType(field);
                 inspect(initializer, declared, holder);
             }
@@ -161,14 +174,25 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     private void inspect(PsiElement element, SubType left, SubType right, @NotNull ProblemsHolder holder, String descriptionTemplate)
     {
+        reportResolutionFailure(left, holder);
+        reportResolutionFailure(right, holder);
+
         if (!Objects.equals(left, right)) {
             if (isIgnoredResolutionFailureReason(left) || isIgnoredResolutionFailureReason(right))
             {
                 //Will get caught by visitConditionalExpression
                 return;
             }
-            String description = String.format(descriptionTemplate, left.getSubtypeFQN(), right.getSubtypeFQN());
+            final String description = String.format(descriptionTemplate, left.getSubtypeFQN(), right.getSubtypeFQN());
             holder.registerProblem(element, description);
+        }
+    }
+
+    private void reportResolutionFailure(SubType subType, @NotNull ProblemsHolder holder) {
+        if (subType.getFaliureReason() != ResolutionFailureReason.NONE && !isIgnoredResolutionFailureReason(subType))
+        {
+            final String description = String.format(FAILED_TO_RESOLVE, subType.getPsiElement(), subType.getFaliureReason());
+            holder.registerProblem(subType.getPsiElement(), description);
         }
     }
 
