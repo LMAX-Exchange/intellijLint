@@ -19,8 +19,6 @@ public class SubType {
     final static List<String> subTypeAnnotations = new ArrayList<>();
     private final static WeakHashMap<String, Boolean> subTypeCache = new WeakHashMap<>();
 
-    //Could not resolve
-    @SuppressWarnings("NullableProblems")
     private SubType(@NotNull PsiElement element, ResolutionFailureReason resolutionFailureReason)
     {
         this.element = element;
@@ -45,8 +43,7 @@ public class SubType {
         resolutionFailureReason = NONE;
     }
 
-    @Nullable
-    public String getSubtypeFQN()
+    public @Nullable String getSubtypeFQN()
     {
         return subtypeFQN;
     }
@@ -56,8 +53,7 @@ public class SubType {
         SubType.subTypeAnnotations.addAll(subTypeAnnotations);
     }
 
-    @NotNull
-    public PsiElement getPsiElement() {
+    public @NotNull PsiElement getPsiElement() {
         return element;
     }
 
@@ -251,7 +247,7 @@ public class SubType {
         return new SubType(elementToResolve, ResolutionFailureReason.UNEXPECTED_PSI_ELEMENT_TYPE);
     }
 
-    public ResolutionFailureReason getFaliureReason() {
+    public ResolutionFailureReason getFailureReason() {
         return resolutionFailureReason;
     }
 }

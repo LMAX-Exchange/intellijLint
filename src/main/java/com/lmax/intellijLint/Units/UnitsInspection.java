@@ -189,15 +189,15 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     }
 
     private void reportResolutionFailure(SubType subType, @NotNull ProblemsHolder holder) {
-        if (subType.getFaliureReason() != ResolutionFailureReason.NONE && !isIgnoredResolutionFailureReason(subType))
+        if (subType.getFailureReason() != ResolutionFailureReason.NONE && !isIgnoredResolutionFailureReason(subType))
         {
-            final String description = String.format(FAILED_TO_RESOLVE, subType.getPsiElement(), subType.getFaliureReason());
+            final String description = String.format(FAILED_TO_RESOLVE, subType.getPsiElement(), subType.getFailureReason());
             holder.registerProblem(subType.getPsiElement(), description);
         }
     }
 
     private boolean isIgnoredResolutionFailureReason(SubType subType) {
-        final ResolutionFailureReason faliureReason = subType.getFaliureReason();
+        final ResolutionFailureReason faliureReason = subType.getFailureReason();
         return faliureReason == ResolutionFailureReason.MISMATCHED_CONDITIONAL ||
                 faliureReason == ResolutionFailureReason.MISMATCHED_BINARY_EXPRESSION;
     }
