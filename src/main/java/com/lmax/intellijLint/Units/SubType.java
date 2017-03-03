@@ -260,6 +260,16 @@ public class SubType {
             return getSubType(operand);
         }
 
+        if (elementToResolve instanceof PsiParenthesizedExpression)
+        {
+            final PsiExpression expression = ((PsiParenthesizedExpression) elementToResolve).getExpression();
+            if (expression == null)
+            {
+                return new SubType(elementToResolve, ResolutionFailureReason.PARENTHESIZED_WITHOUT_INNER_EXPRESSION);
+            }
+            return getSubType(expression);
+        }
+
         return new SubType(elementToResolve, ResolutionFailureReason.UNEXPECTED_PSI_ELEMENT_TYPE);
     }
 

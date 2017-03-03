@@ -52,4 +52,12 @@ public class Misc extends Base {
     public void testEnumEquality() throws Exception {
         expectNoInspections();
     }
+//  TODO: bubble up mismatches inside parens.
+//    public void testParenthesized() throws Exception {
+//        expectInspection("Left side of expression is null and right side is foo");
+//    }
+
+    public void testCorrectParenthesized() throws Exception {
+        expectNoInspections();
+    }
 }
