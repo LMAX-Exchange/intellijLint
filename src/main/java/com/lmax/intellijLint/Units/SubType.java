@@ -160,6 +160,12 @@ public class SubType {
             return new SubType(elementToResolve); //TODO: wrapping types, i.e. optionalLong etc
         }
 
+        if (elementToResolve instanceof PsiEnumConstant)
+        {
+            //Enums can't have subtypes?
+            return new SubType(elementToResolve);
+        }
+
         if (elementToResolve instanceof PsiCall)
         {
             PsiMethod psiMethod = ((PsiCall) elementToResolve).resolveMethod();

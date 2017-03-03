@@ -48,4 +48,8 @@ public class Misc extends Base {
     public void testCorrectPrefixedEquality() throws Exception {
         expectNoInspections();
     }
+
+    public void testEnumEquality() throws Exception {
+        expectNoInspections();
+    }
 }
