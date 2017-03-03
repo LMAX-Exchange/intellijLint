@@ -9,6 +9,18 @@ public class Misc extends Base {
         expectInspection("Left side of expression is null and right side is foo");
     }
 
+    public void testCorrectArithmetic() throws Exception {
+        expectNoInspections();
+    }
+
+    public void testArithmeticAssignment() throws Exception {
+        expectInspection("Assigning null to variable of type foo");
+    }
+
+    public void testCorrectArithmeticAssignment() throws Exception {
+        expectNoInspections();
+    }
+
     public void testTernary() throws Exception {
         expectInspection("Left side of expression is null and right side is foo");
     }
