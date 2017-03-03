@@ -28,4 +28,24 @@ public class Misc extends Base {
     public void testReturnUntyped() throws Exception {
         expectInspection("Returning null when expecting foo");
     }
+
+    public void testUninitializedField() throws Exception {
+        expectNoInspections();
+    }
+
+    public void testEquality() throws Exception {
+        expectInspection("Left side of expression is null and right side is foo");
+    }
+
+    public void testCorrectEquality() throws Exception {
+        expectNoInspections();
+    }
+
+    public void testPrefixedEquality() throws Exception {
+        expectInspection("Left side of expression is null and right side is foo");
+    }
+
+    public void testCorrectPrefixedEquality() throws Exception {
+        expectNoInspections();
+    }
 }

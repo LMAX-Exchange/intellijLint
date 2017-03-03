@@ -244,6 +244,16 @@ public class SubType {
             return thenSubType;
         }
 
+        if (elementToResolve instanceof PsiPrefixExpression)
+        {
+            final PsiExpression operand = ((PsiPrefixExpression) elementToResolve).getOperand();
+            if (operand == null)
+            {
+                return new SubType(elementToResolve, ResolutionFailureReason.PREFIX_WITHOUT_OPERAND);
+            }
+            return getSubType(operand);
+        }
+
         return new SubType(elementToResolve, ResolutionFailureReason.UNEXPECTED_PSI_ELEMENT_TYPE);
     }
 
