@@ -4,22 +4,6 @@ public class Misc extends Base {
     public void testReturnVariable() throws Exception {
         expectNoInspections();
     }
-//    TODO: bubble up mismatches when resolving arithmetic
-//    public void testArithmetic() throws Exception {
-//        expectInspection("Assigning null to variable of type foo");
-//    }
-
-    public void testCorrectArithmetic() throws Exception {
-        expectNoInspections();
-    }
-
-    public void testArithmeticAssignment() throws Exception {
-        expectInspection("Assigning null to variable of type foo");
-    }
-
-    public void testCorrectArithmeticAssignment() throws Exception {
-        expectNoInspections();
-    }
 //    TODO: bubble up mismatches when resolving ternaries.
 //    public void testTernary() throws Exception {
 //        expectInspection("Assigning null to variable of type foo");
@@ -68,12 +52,20 @@ public class Misc extends Base {
     public void testCorrectReturnThis() throws Exception {
         expectNoInspections();
     }
-//  TODO: bubble up mismatches when polyadic operation and assigning.
-//    public void testPolyadicArithmetic() throws Exception {
-//        expectInspection("Found null when rest of expression is foo");
+
+    public void testPolyadicStringConversion() throws Exception {
+        expectNoInspections();
+    }
+//    TODO: check method calls
+//    public void testLambda() throws Exception {
+//        expectInspection("Found null when expecting foo");
 //    }
 
-    public void testCorrectPolyadicArithmetic() throws Exception {
+    public void testCorrectLambda() throws Exception {
+        expectNoInspections();
+    }
+
+    public void testCastDuringAssignment() throws Exception {
         expectNoInspections();
     }
 }
