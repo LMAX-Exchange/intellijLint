@@ -1,17 +1,10 @@
 package com.lmax.intellijLint.UnitsInspectionTests;
 
 public class Misc extends Base {
-    public void testReturnVariable() throws Exception {
-        expectNoInspections();
-    }
 //    TODO: bubble up mismatches when resolving ternaries.
 //    public void testTernary() throws Exception {
 //        expectInspection("Assigning null to variable of type foo");
 //    }
-
-    public void testReturnUntyped() throws Exception {
-        expectInspection("Returning null when expecting foo");
-    }
 
     public void testUninitializedField() throws Exception {
         expectNoInspections();
@@ -45,23 +38,7 @@ public class Misc extends Base {
         expectNoInspections();
     }
 
-    public void testReturnThis() throws Exception {
-        expectInspection("Returning null when expecting foo");
-    }
-
-    public void testCorrectReturnThis() throws Exception {
-        expectNoInspections();
-    }
-
     public void testPolyadicStringConversion() throws Exception {
-        expectNoInspections();
-    }
-//    TODO: check method calls
-//    public void testLambda() throws Exception {
-//        expectInspection("Found null when expecting foo");
-//    }
-
-    public void testCorrectLambda() throws Exception {
         expectNoInspections();
     }
 
