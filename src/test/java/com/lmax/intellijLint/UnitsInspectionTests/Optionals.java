@@ -2,15 +2,15 @@ package com.lmax.intellijLint.UnitsInspectionTests;
 
 public class Optionals extends Base {
     public void testRightUntypedOnOptional() throws Exception {
-        expectAssignmentInspection("null", "foo");
+        expectInspection("Assigning null to variable of type foo");
     }
 
     public void testLeftUntypedOnOptional() throws Exception {
-        expectAssignmentInspection("foo", "null");
+        expectInspection("Assigning foo to variable of type null");
     }
 
     public void testMismatchedUnitsOnOptional() throws Exception {
-        expectAssignmentInspection("bar", "foo");
+        expectInspection("Assigning bar to variable of type foo");
     }
 
     /*

@@ -41,16 +41,13 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     @SuppressWarnings("PublicField")
     public final List<String> subTypeAnnotations = new ArrayList<>();
 
-    private PsiMethod walkUpToWrappingMethod(PsiElement element)
-    {
-        if (element == null)
-        {
+    private PsiMethod walkUpToWrappingMethod(PsiElement element) {
+        if (element == null) {
             return null;
         }
 
         PsiElement parent = element.getParent();
-        if (parent == null)
-        {
+        if (parent == null) {
             return null;
         }
 
@@ -70,14 +67,20 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 super.visitAssignmentExpression(expression);
 
                 final PsiExpression initalizerExpr = expression.getRExpression();
-                if (initalizerExpr == null)
-                {
+                if (initalizerExpr == null) {
                     return;
                 }
 
                 SubType declared = SubType.getSubType(expression.getLExpression());
-                SubType assigned = SubType.getSubType(initalizerExpr);
-                inspect(assigned, declared, holder);
+                if (!declared.isResolved()) {
+                    reportResolutionFailure(declared, holder);
+                    return;
+                }
+
+                if (declared.hasSubtype()) {
+                    SubType assigned = SubType.getSubType(initalizerExpr);
+                    inspect(assigned, declared, holder);
+                }
             }
 
             @Override
@@ -85,8 +88,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 super.visitField(field);
 
                 final PsiExpression initializerExpr = field.getInitializer();
-                if (initializerExpr == null)
-                {
+                if (initializerExpr == null) {
                     return;
                 }
 
@@ -101,8 +103,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
                 final PsiExpression initializerExpression = variable.getInitializer();
 
-                if (initializerExpression == null)
-                {
+                if (initializerExpression == null) {
                     return;
                 }
 
@@ -118,87 +119,41 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
                 final PsiExpression returnValueExpr = statement.getReturnValue();
 
-                if (returnValueExpr == null)
-                {
+                if (returnValueExpr == null) {
                     return; // void return, won't have annotation.
                 }
-
-                final SubType returnValue = SubType.getSubType(returnValueExpr);
 
                 PsiMethod psiMethod = walkUpToWrappingMethod(returnValueExpr);
                 final SubType declared = SubType.getSubType(psiMethod);
 
-                inspect(returnValue, declared, holder, RETURNING_DESCRIPTION_TEMPLATE);
-            }
-
-            @Override
-            public void visitBinaryExpression(PsiBinaryExpression expression) {
-                super.visitBinaryExpression(expression);
-
-                PsiExpression rOperand = expression.getROperand();
-                if (rOperand == null)
-                {
+                if (!declared.isResolved()) {
+                    reportResolutionFailure(declared, holder);
                     return;
                 }
 
-                inspect(expression, SubType.getSubType(expression.getLOperand()), SubType.getSubType(rOperand), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
-            }
-
-            @Override
-            public void visitConditionalExpression(PsiConditionalExpression expression) {
-                super.visitConditionalExpression(expression);
-
-                PsiExpression elseExpression = expression.getElseExpression();
-                if (elseExpression == null)
-                {
-                    return;
-                }
-
-                final PsiExpression thenExpression = expression.getThenExpression();
-                if (thenExpression == null)
-                {
-                    throw new IllegalStateException("No then expr on conditional?!");
-                }
-                inspect(expression, SubType.getSubType(thenExpression), SubType.getSubType(elseExpression), holder, BINARY_EXPRESSION_DESCRIPTION_TEMPLATE);
-            }
-
-            @Override
-            public void visitPolyadicExpression(PsiPolyadicExpression expression) {
-                super.visitPolyadicExpression(expression);
-
-                SubType last = null;
-                for (PsiExpression e: expression.getOperands()) {
-                    SubType current = SubType.getSubType(e);
-                    if (last != null)
-                    {
-                        inspect(expression, current, last, holder, POLYADIC_MISMATCH);
-                    }
-
-                    last = current;
+                if (declared.hasSubtype()) {
+                    final SubType returnValue = SubType.getSubType(returnValueExpr);
+                    inspect(returnValue, declared, holder, RETURNING_DESCRIPTION_TEMPLATE);
                 }
             }
         };
     }
 
-    private void inspect(SubType potentiallyProblematic, SubType checkAgainst, @NotNull ProblemsHolder holder)
-    {
+    private void inspect(SubType potentiallyProblematic, SubType checkAgainst, @NotNull ProblemsHolder holder) {
         inspect(potentiallyProblematic, checkAgainst, holder, DESCRIPTION_TEMPLATE);
     }
 
-    private void inspect(SubType potentiallyProblematic, SubType checkAgainst, @NotNull ProblemsHolder holder, String descriptionTemplate)
-    {
+    private void inspect(SubType potentiallyProblematic, SubType checkAgainst, @NotNull ProblemsHolder holder, String descriptionTemplate) {
         inspect(potentiallyProblematic.getPsiElement(), potentiallyProblematic, checkAgainst, holder, descriptionTemplate);
     }
 
-    private void inspect(PsiElement element, SubType left, SubType right, @NotNull ProblemsHolder holder, String descriptionTemplate)
-    {
+    private void inspect(PsiElement element, SubType left, SubType right, @NotNull ProblemsHolder holder, String descriptionTemplate) {
         reportResolutionFailure(left, holder);
         reportResolutionFailure(right, holder);
 
         if (!Objects.equals(left, right)) {
-            if (isIgnoredResolutionFailureReason(left) || isIgnoredResolutionFailureReason(right))
-            {
-                //Will get caught by visitConditionalExpression
+            if (isIgnoredResolutionFailureReason(left) || isIgnoredResolutionFailureReason(right)) {
+                //TODO
                 return;
             }
             final String description = String.format(descriptionTemplate, left.getSubtypeFQN(), right.getSubtypeFQN());
@@ -207,8 +162,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     }
 
     private void reportResolutionFailure(SubType subType, @NotNull ProblemsHolder holder) {
-        if (subType.getFailureReason() != ResolutionFailureReason.NONE && !isIgnoredResolutionFailureReason(subType))
-        {
+        if (subType.getFailureReason() != ResolutionFailureReason.NONE && !isIgnoredResolutionFailureReason(subType)) {
             final String description = String.format(FAILED_TO_RESOLVE, subType.getPsiElement(), subType.getFailureReason());
             holder.registerProblem(subType.getPsiElement(), description);
         }
@@ -244,8 +198,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     }
 
     public class State {
-        public State()
-        {
+        public State() {
             subTypeAnnotations = new ExternalizableStringSet("org.checkerframework.framework.qual.SubtypeOf");
         }
 

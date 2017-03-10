@@ -3,26 +3,22 @@ package com.lmax.intellijLint.UnitsInspectionTests;
 public class Variables extends Base {
 
     public void testMismatchedUnitsOnVariableInitialization() throws Exception {
-        expectAssignmentInspection("bar", "foo");
+        expectInspection("Assigning bar to variable of type foo");
     }
 
     public void testRightUntypedOnVariableInitialization() throws Exception {
-        expectAssignmentInspection("null", "foo");
+        expectInspection("Assigning null to variable of type foo");
     }
 
     public void testLeftUntypedOnVariableInitialization() throws Exception {
-        expectAssignmentInspection("foo", "null");
+        expectInspection("Assigning foo to variable of type null");
     }
 
     public void testMismatchedUnitsOnVariableAssignment() throws Exception {
-        expectAssignmentInspection("bar", "foo");
+        expectInspection("Assigning bar to variable of type foo");
     }
 
     public void testRightUntypedOnVariableAssignment() throws Exception {
-        expectAssignmentInspection("null", "foo");
-    }
-
-    public void testLeftUntypedOnVariableAssignment() throws Exception {
-        expectAssignmentInspection("foo", "null");
+        expectInspection("Assigning null to variable of type foo");
     }
 }

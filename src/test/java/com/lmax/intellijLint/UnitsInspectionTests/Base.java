@@ -31,10 +31,6 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
         return "src/test/testData/UnitsInspectionTest/" + this.getClass().getSimpleName();
     }
 
-    void expectAssignmentInspection(String assignmentType, String targetType) {
-        expectInspection(String.format("Assigning %s to variable of type %s", assignmentType, targetType));
-    }
-
     void expectInspection(String expectedMessage) {
         final Pattern pattern = Pattern.compile("^" + Pattern.quote(expectedMessage) + "$");
         expectInspectionMatching(pattern, 1);

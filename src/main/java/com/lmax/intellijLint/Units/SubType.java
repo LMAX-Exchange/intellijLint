@@ -56,6 +56,13 @@ public class SubType {
     public @NotNull PsiElement getPsiElement() {
         return element;
     }
+    public boolean hasSubtype() { return resolved && subtypeFQN != null; }
+    public ResolutionFailureReason getFailureReason() {
+        return resolutionFailureReason;
+    }
+    public boolean isResolved() {
+        return resolved;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -279,9 +286,5 @@ public class SubType {
         }
 
         return new SubType(elementToResolve, ResolutionFailureReason.UNEXPECTED_PSI_ELEMENT_TYPE);
-    }
-
-    public ResolutionFailureReason getFailureReason() {
-        return resolutionFailureReason;
     }
 }
