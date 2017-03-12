@@ -136,6 +136,13 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     inspect(returnValue, declared, holder, RETURNING_DESCRIPTION_TEMPLATE);
                 }
             }
+
+            @Override
+            public void visitMethodCallExpression(PsiMethodCallExpression expression) {
+                super.visitMethodCallExpression(expression);
+
+                
+            }
         };
     }
 

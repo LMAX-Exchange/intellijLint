@@ -25,4 +25,18 @@ public class Methods extends Base {
     public void testCorrectLambda() throws Exception {
         expectNoInspections();
     }
+
+    public void testCorrectReturn() throws Exception {
+        expectNoInspections();
+    }
+
+    public void testCall() throws Exception
+    {
+        expectInspection("Calling method takesFoo with incorrect first argument. Should be foo but is null");
+    }
+
+    public void testCorrectCall() throws Exception
+    {
+        expectNoInspections();
+    }
 }
