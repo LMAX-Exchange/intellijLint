@@ -245,6 +245,13 @@ public class SubType {
         {
             final PsiExpression left = ((PsiBinaryExpression) elementToResolve).getLOperand();
             final PsiExpression right = ((PsiBinaryExpression) elementToResolve).getROperand();
+            final PsiJavaToken operator = ((PsiBinaryExpression) elementToResolve).getOperationSign();
+
+            final SubType leftSubType = getSubType(left);
+            if (operator.textMatches("/") || operator.textMatches("*") || operator.textMatches("%"))
+            {
+                return leftSubType;
+            }
 
             if (right == null)
             {
@@ -252,7 +259,7 @@ public class SubType {
             }
             final SubType thenSubType = getSubType(right);
 
-            if (!Objects.equals(getSubType(left), thenSubType)) {
+            if (!Objects.equals(leftSubType, thenSubType)) {
                 //Differences between sides of expression are handled in visitor.
                 return new SubType(elementToResolve, ResolutionFailureReason.MISMATCHED_BINARY_EXPRESSION);
             }

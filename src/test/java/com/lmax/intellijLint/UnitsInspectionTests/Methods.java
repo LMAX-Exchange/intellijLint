@@ -16,15 +16,14 @@ public class Methods extends Base {
     public void testCorrectReturnThis() throws Exception {
         expectNoInspections();
     }
-
-//    TODO: check method calls
+// TODO: handle lambdas.
 //    public void testLambda() throws Exception {
-//        expectInspection("Found null when expecting foo");
+//        expectInspection("Passing null when expecting a parameter of type foo");
 //    }
-
-    public void testCorrectLambda() throws Exception {
-        expectNoInspections();
-    }
+//
+//    public void testCorrectLambda() throws Exception {
+//        expectNoInspections();
+//    }
 
     public void testCorrectReturn() throws Exception {
         expectNoInspections();
@@ -32,7 +31,7 @@ public class Methods extends Base {
 
     public void testCall() throws Exception
     {
-        expectInspection("Calling method takesFoo with incorrect first argument. Should be foo but is null");
+        expectInspection("Passing null when expecting a parameter of type foo");
     }
 
     public void testCorrectCall() throws Exception

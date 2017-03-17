@@ -11,7 +11,11 @@ public class Variables extends Base {
     }
 
     public void testLeftUntypedOnVariableInitialization() throws Exception {
-        expectInspection("Assigning foo to variable of type null");
+        expectNoInspections();
+    }
+
+    public void testLeftUntypedOnVariableAssignment() throws Exception {
+        expectNoInspections();
     }
 
     public void testMismatchedUnitsOnVariableAssignment() throws Exception {

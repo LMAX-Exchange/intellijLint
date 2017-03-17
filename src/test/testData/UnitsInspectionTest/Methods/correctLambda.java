@@ -4,6 +4,7 @@ private @interface foo {}
 public class Foo {
     private void foos()
     {
-        LongStream.of(1, 2, 3).map(x -> (@foo long) x).collect(Collectors.toList());
+        java.util.function.LongFunction longFn = x -> (@foo long) x;
+        @foo long test = longFn.apply(2);
     }
 }

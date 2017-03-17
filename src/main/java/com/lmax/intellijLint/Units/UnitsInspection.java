@@ -33,6 +33,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     }
 
     public static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";
+    public static final String ARGUMENT_TEMPLATE = "Passing %s when expecting a parameter of type %s";
     public static final String BINARY_EXPRESSION_DESCRIPTION_TEMPLATE = "Left side of expression is %s and right side is %s";
     public static final String RETURNING_DESCRIPTION_TEMPLATE = "Returning %s when expecting %s";
     public static final String FAILED_TO_RESOLVE = "Failed to resolve subtype on %s due to %s";
@@ -86,6 +87,10 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             @Override
             public void visitField(PsiField field) {
                 super.visitField(field);
+                final SubType declared = SubType.getSubType(field);
+                if (!declared.hasSubtype()) {
+                    return;
+                }
 
                 final PsiExpression initializerExpr = field.getInitializer();
                 if (initializerExpr == null) {
@@ -93,13 +98,17 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 }
 
                 final SubType initializer = SubType.getSubType(initializerExpr);
-                final SubType declared = SubType.getSubType(field);
                 inspect(initializer, declared, holder);
             }
 
             @Override
             public void visitLocalVariable(PsiLocalVariable variable) {
                 super.visitLocalVariable(variable);
+
+                final SubType declared = SubType.getSubType(variable);
+                if (!declared.hasSubtype()) {
+                    return;
+                }
 
                 final PsiExpression initializerExpression = variable.getInitializer();
 
@@ -108,8 +117,6 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 }
 
                 final SubType initializer = SubType.getSubType(initializerExpression);
-
-                final SubType declared = SubType.getSubType(variable);
                 inspect(initializer, declared, holder);
             }
 
@@ -141,7 +148,23 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {
                 super.visitMethodCallExpression(expression);
 
-                
+                final PsiMethod psiMethod = expression.resolveMethod();
+
+                if (psiMethod == null) {
+                    //TODO: Might be a lambda. Deal with that somehow.
+                    reportResolutionFailure(expression, "being unable to resolve method", holder);
+                    return;
+                }
+
+                final PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
+                final PsiExpression[] argExprs = expression.getArgumentList().getExpressions();
+
+                for (int i = 0; i < parameters.length; i++) {
+                    final SubType paramSubType = SubType.getSubType(parameters[i]);
+                    final SubType argSubType = SubType.getSubType(argExprs[i]);
+
+                    inspect(argSubType, paramSubType, holder, ARGUMENT_TEMPLATE);
+                }
             }
         };
     }
@@ -155,24 +178,27 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     }
 
     private void inspect(PsiElement element, SubType left, SubType right, @NotNull ProblemsHolder holder, String descriptionTemplate) {
-        reportResolutionFailure(left, holder);
-        reportResolutionFailure(right, holder);
+        if (reportResolutionFailure(left, holder) || reportResolutionFailure(right, holder)) {
+            return;
+        }
 
         if (!Objects.equals(left, right)) {
-            if (isIgnoredResolutionFailureReason(left) || isIgnoredResolutionFailureReason(right)) {
-                //TODO
-                return;
-            }
             final String description = String.format(descriptionTemplate, left.getSubtypeFQN(), right.getSubtypeFQN());
             holder.registerProblem(element, description);
         }
     }
 
-    private void reportResolutionFailure(SubType subType, @NotNull ProblemsHolder holder) {
+    private boolean reportResolutionFailure(SubType subType, @NotNull ProblemsHolder holder) {
         if (subType.getFailureReason() != ResolutionFailureReason.NONE && !isIgnoredResolutionFailureReason(subType)) {
-            final String description = String.format(FAILED_TO_RESOLVE, subType.getPsiElement(), subType.getFailureReason());
-            holder.registerProblem(subType.getPsiElement(), description);
+            reportResolutionFailure(subType.getPsiElement(), subType.getFailureReason().toString(), holder);
+            return true;
         }
+        return false;
+    }
+
+    private void reportResolutionFailure(PsiElement element, String failureReason, @NotNull ProblemsHolder holder) {
+        final String description = String.format(FAILED_TO_RESOLVE, element, failureReason);
+        holder.registerProblem(element, description);
     }
 
     private boolean isIgnoredResolutionFailureReason(SubType subType) {

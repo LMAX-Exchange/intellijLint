@@ -6,7 +6,7 @@ public class Optionals extends Base {
     }
 
     public void testLeftUntypedOnOptional() throws Exception {
-        expectInspection("Assigning foo to variable of type null");
+        expectNoInspections();
     }
 
     public void testMismatchedUnitsOnOptional() throws Exception {

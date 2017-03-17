@@ -19,7 +19,8 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
             UnitsInspection.RETURNING_DESCRIPTION_TEMPLATE,
             UnitsInspection.BINARY_EXPRESSION_DESCRIPTION_TEMPLATE,
             UnitsInspection.FAILED_TO_RESOLVE,
-            UnitsInspection.POLYADIC_MISMATCH);
+            UnitsInspection.POLYADIC_MISMATCH,
+            UnitsInspection.ARGUMENT_TEMPLATE);
     private static final String TEMPLATES_AS_REGEX_GROUPS = DESCRIPTION_TEMPLATES
             .map(s -> s.replace("%s", ".*"))
             .map(s -> "(" + s + ")")
@@ -52,23 +53,29 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
                 .filter(x -> pattern.matcher(x.getDescription()).matches())
                 .collect(Collectors.toList());
 
-        if (count == 0)
-        {
-            Assert.assertEquals("Expected no inspections matching " + pattern.toString(),
-                    Collections.emptyList(),
-                    matchingInspections);
-        }
-        else
-        {
-            Assert.assertEquals("Did not find expected number of inspections matching " + pattern.toString(),
-                    count,
-                    matchingInspections.size());
-        }
-
         final List<HighlightInfo> allUnitInspections = highlightInfoList.stream()
                 .filter(x -> x.getDescription() != null)
                 .filter(x -> UNITS_DESCRIPTIONS.matcher(x.getDescription()).matches())
                 .collect(Collectors.toList());
+
+        if (count == 0) {
+            Assert.assertEquals("Expected no inspections matching " + pattern.toString(),
+                    Collections.emptyList(),
+                    matchingInspections);
+        } else {
+            Assert.assertEquals("Did not find expected number of inspections matching " +
+                            pattern.toString() +
+                            "\n " +
+                            "Did find:\n " +
+                            "[" +
+                            allUnitInspections
+                                    .stream()
+                                    .map(HighlightInfo::toString)
+                                    .collect(Collectors.joining(",\n"))
+                            + "]\n",
+                    count,
+                    matchingInspections.size());
+        }
 
         Assert.assertEquals("Found unexpected Units inspections:", matchingInspections, allUnitInspections);
     }
