@@ -160,7 +160,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 final PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
                 final PsiExpression[] argExprs = expression.getArgumentList().getExpressions();
 
-                for (int i = 0; i < parameters.length; i++) {
+                for (int i = 0; (i < parameters.length && i < argExprs.length); i++) {
                     final SubType paramSubType = SubType.getSubType(parameters[i]);
                     final SubType argSubType = SubType.getSubType(argExprs[i]);
 

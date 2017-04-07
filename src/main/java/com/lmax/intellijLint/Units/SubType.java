@@ -292,6 +292,18 @@ public class SubType {
             return getSubType(expression);
         }
 
+        if (elementToResolve instanceof PsiArrayAccessExpression)
+        {
+            //TODO
+            return new SubType(elementToResolve);
+        }
+
+        if (elementToResolve instanceof PsiLambdaExpression)
+        {
+            //TODO
+            return new SubType(elementToResolve);
+        }
+
         return new SubType(elementToResolve, ResolutionFailureReason.UNEXPECTED_PSI_ELEMENT_TYPE);
     }
 }
