@@ -164,7 +164,8 @@ public class SubType {
         if (elementToResolve instanceof PsiNewExpression ||
                 elementToResolve instanceof PsiThisExpression ||
                 elementToResolve instanceof PsiInstanceOfExpression ||
-                elementToResolve instanceof PsiClassObjectAccessExpression)
+                elementToResolve instanceof PsiClassObjectAccessExpression ||
+                elementToResolve instanceof PsiClass)
         {
             //Classes can't be annotated (there's no point).
             return new SubType(elementToResolve); //TODO: wrapping types, i.e. optionalLong etc
@@ -173,6 +174,12 @@ public class SubType {
         if (elementToResolve instanceof PsiEnumConstant)
         {
             //Enums can't have subtypes?
+            return new SubType(elementToResolve);
+        }
+
+        if (elementToResolve instanceof PsiAssignmentExpression)
+        {
+            //TODO: Means we got an assignment inside something else?
             return new SubType(elementToResolve);
         }
 

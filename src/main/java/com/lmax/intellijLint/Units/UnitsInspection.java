@@ -6,6 +6,7 @@ import com.intellij.codeInspection.util.SpecialAnnotationsUtil;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.*;
 import com.siyeh.ig.ui.ExternalizableStringSet;
 import org.jetbrains.annotations.Nls;
@@ -19,6 +20,8 @@ import java.util.*;
 @State(name = "unitsInspection", storages = {@Storage("com.lmax.intellijLint.units.xml")})
 public class UnitsInspection extends BaseJavaLocalInspectionTool implements PersistentStateComponent<UnitsInspection.State>, com.intellij.openapi.components.ProjectComponent
 {
+    private static final Logger LOG = Logger.getInstance("#intellijLint.OptionalNullInspection");
+
     @Nls
     @NotNull
     @Override
@@ -132,6 +135,10 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 }
 
                 PsiMethod psiMethod = walkUpToWrappingMethod(returnValueExpr);
+                if (psiMethod == null)
+                {
+                    LOG.warn("Unable to locate wrapping method for return statement " + statement.getText() + " in: " + statement.getContainingFile());
+                }
                 final SubType declared = SubType.getSubType(psiMethod);
 
                 if (!declared.isResolved()) {
