@@ -163,7 +163,8 @@ public class SubType {
     {
         if (elementToResolve instanceof PsiNewExpression ||
                 elementToResolve instanceof PsiThisExpression ||
-                elementToResolve instanceof PsiInstanceOfExpression)
+                elementToResolve instanceof PsiInstanceOfExpression ||
+                elementToResolve instanceof PsiClassObjectAccessExpression)
         {
             //Classes can't be annotated (there's no point).
             return new SubType(elementToResolve); //TODO: wrapping types, i.e. optionalLong etc
@@ -279,6 +280,12 @@ public class SubType {
             {
                 return new SubType(elementToResolve, ResolutionFailureReason.PREFIX_WITHOUT_OPERAND);
             }
+            return getSubType(operand);
+        }
+
+        if (elementToResolve instanceof PsiPostfixExpression)
+        {
+            final PsiExpression operand = ((PsiPostfixExpression) elementToResolve).getOperand();
             return getSubType(operand);
         }
 
