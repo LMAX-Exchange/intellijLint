@@ -28,6 +28,12 @@
     <inspectionToolProvider implementation="com.lmax.intellijLint.Units.UnitsProvider"/>
   </extensions>
 
+  <project-components>
+    <component>
+      <implementation-class>com.lmax.intellijLint.Units.UnitsInspection</implementation-class>
+    </component>
+  </project-components>
+
   <actions>
     <!-- Add your actions here -->
   </actions>

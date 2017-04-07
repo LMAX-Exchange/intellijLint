@@ -4,6 +4,7 @@ import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.codeInspection.util.SpecialAnnotationsUtil;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.psi.*;
 import com.siyeh.ig.ui.ExternalizableStringSet;
@@ -15,9 +16,9 @@ import javax.swing.*;
 import java.util.*;
 
 @SuppressWarnings("WeakerAccess") //Needs to be public as is used in plugin.
-@Storage("com.lmax.intellijLint.units.xml")
-public class UnitsInspection extends BaseJavaLocalInspectionTool implements PersistentStateComponent<UnitsInspection.State> {
-
+@State(name = "unitsInspection", storages = {@Storage("com.lmax.intellijLint.units.xml")})
+public class UnitsInspection extends BaseJavaLocalInspectionTool implements PersistentStateComponent<UnitsInspection.State>, com.intellij.openapi.components.ProjectComponent
+{
     @Nls
     @NotNull
     @Override
@@ -210,7 +211,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     public JComponent createOptionsPanel() {
         return SpecialAnnotationsUtil.createSpecialAnnotationsListControl(
-                SubType.subTypeAnnotations, "Sub Type annotations");
+                this.subTypeAnnotations, "Sub Type annotations");
     }
 
     public boolean isEnabledByDefault() {
@@ -228,9 +229,37 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     @Override
     public void loadState(UnitsInspection.State state) {
         SubType.setAnnotations(state.subTypeAnnotations);
+        this.subTypeAnnotations.clear();
+        this.subTypeAnnotations.addAll(state.subTypeAnnotations);
     }
 
-    public class State {
+    @Override
+    public void projectOpened() {
+
+    }
+
+    @Override
+    public void projectClosed() {
+
+    }
+
+    @Override
+    public void initComponent() {
+
+    }
+
+    @Override
+    public void disposeComponent() {
+
+    }
+
+    @NotNull
+    @Override
+    public String getComponentName() {
+        return "UnitsInspection";
+    }
+
+    public static class State {
         public State() {
             subTypeAnnotations = new ExternalizableStringSet("org.checkerframework.framework.qual.SubtypeOf");
         }
