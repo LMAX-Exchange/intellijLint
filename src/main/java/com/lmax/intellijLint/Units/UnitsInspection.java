@@ -14,9 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @SuppressWarnings("WeakerAccess") //Needs to be public as is used in plugin.
 @State(name = "unitsInspection", storages = {@Storage("com.lmax.intellijLint.units.xml")})
@@ -45,6 +43,9 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     public static final String FAILED_TO_RESOLVE = "Failed to resolve subtype on %s due to %s";
     public static final String POLYADIC_MISMATCH = "Found %s when rest of expression is %s";
 
+    private static final ArrayList<String> defaultSubTypes = new ArrayList<>(Collections.singletonList("org.checkerframework.framework.qual.SubtypeOf"));
+    public final static List<String> subTypeAnnotations = defaultSubTypes;
+    private final static SubTypeFactory subTypeFactory = new SubTypeFactory(subTypeAnnotations);
 
     /**
      *  Returns either a {@link PsiMethod} or {@link PsiLambdaExpression}
@@ -79,14 +80,14 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return;
                 }
 
-                SubType declared = SubType.getSubType(expression.getLExpression());
+                SubType declared = subTypeFactory.getSubType(expression.getLExpression());
                 if (!declared.isResolved()) {
                     reportResolutionFailure(declared, holder);
                     return;
                 }
 
                 if (declared.hasSubtype()) {
-                    SubType assigned = SubType.getSubType(initalizerExpr);
+                    SubType assigned = subTypeFactory.getSubType(initalizerExpr);
                     inspect(expression, assigned, declared, holder, DESCRIPTION_TEMPLATE);
                 }
             }
@@ -94,7 +95,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             @Override
             public void visitField(PsiField field) {
                 super.visitField(field);
-                final SubType declared = SubType.getSubType(field);
+                final SubType declared = subTypeFactory.getSubType(field);
                 if (!declared.hasSubtype()) {
                     return;
                 }
@@ -104,7 +105,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return;
                 }
 
-                final SubType initializer = SubType.getSubType(initializerExpr);
+                final SubType initializer = subTypeFactory.getSubType(initializerExpr);
                 inspect(field, initializer, declared, holder, DESCRIPTION_TEMPLATE);
             }
 
@@ -112,7 +113,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             public void visitLocalVariable(PsiLocalVariable variable) {
                 super.visitLocalVariable(variable);
 
-                final SubType declared = SubType.getSubType(variable);
+                final SubType declared = subTypeFactory.getSubType(variable);
                 if (!declared.hasSubtype()) {
                     return;
                 }
@@ -123,7 +124,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return;
                 }
 
-                final SubType initializer = SubType.getSubType(initializerExpression);
+                final SubType initializer = subTypeFactory.getSubType(initializerExpression);
                 inspect(variable, initializer, declared, holder, DESCRIPTION_TEMPLATE);
             }
 
@@ -143,7 +144,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     LOG.warn("Unable to locate wrapping method for return statement " + statement.getText() + " in: " + statement.getContainingFile());
                     return;
                 }
-                final SubType declared = SubType.getSubType(psiMethod);
+                final SubType declared = subTypeFactory.getSubType(psiMethod);
 
                 if (!declared.isResolved()) {
                     reportResolutionFailure(declared, holder);
@@ -151,7 +152,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 }
 
                 if (declared.hasSubtype()) {
-                    final SubType returnValue = SubType.getSubType(returnValueExpr);
+                    final SubType returnValue = subTypeFactory.getSubType(returnValueExpr);
                     inspect(statement, returnValue, declared, holder, RETURNING_DESCRIPTION_TEMPLATE);
                 }
             }
@@ -175,8 +176,8 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 final PsiExpression[] argExprs = expression.getArgumentList().getExpressions();
 
                 for (int i = 0; (i < parameters.length && i < argExprs.length); i++) {
-                    final SubType paramSubType = SubType.getSubType(parameters[i]);
-                    final SubType argSubType = SubType.getSubType(argExprs[i]);
+                    final SubType paramSubType = subTypeFactory.getSubType(parameters[i]);
+                    final SubType argSubType = subTypeFactory.getSubType(argExprs[i]);
 
                     inspect(argSubType, paramSubType, holder, ARGUMENT_TEMPLATE);
                 }
@@ -221,7 +222,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     public JComponent createOptionsPanel() {
         return SpecialAnnotationsUtil.createSpecialAnnotationsListControl(
-                SubType.subTypeAnnotations, "Sub Type annotations");
+                subTypeAnnotations, "Sub Type annotations");
     }
 
     public boolean isEnabledByDefault() {
@@ -232,13 +233,14 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     @Override
     public UnitsInspection.State getState() {
         State state = new State();
-        state.subTypeAnnotations = new HashSet<>(SubType.subTypeAnnotations);
+        state.subTypeAnnotations = new HashSet<>(subTypeAnnotations);
         return state;
     }
 
     @Override
     public void loadState(UnitsInspection.State state) {
-        SubType.setAnnotations(state.subTypeAnnotations);
+        subTypeAnnotations.clear();
+        subTypeAnnotations.addAll(state.subTypeAnnotations);
     }
 
     @Override
@@ -269,7 +271,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     public static class State {
         public State() {
-            subTypeAnnotations = new ExternalizableStringSet("org.checkerframework.framework.qual.SubtypeOf");
+            subTypeAnnotations = new ExternalizableStringSet(defaultSubTypes.toArray(new String[defaultSubTypes.size()]));
         }
 
         public Set<String> subTypeAnnotations;

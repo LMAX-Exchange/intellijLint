@@ -2,11 +2,9 @@ package com.lmax.intellijLint.UnitsInspectionTests;
 
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase;
-import com.lmax.intellijLint.Units.SubType;
 import com.lmax.intellijLint.Units.UnitsInspection;
 import org.junit.Assert;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -44,7 +42,7 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
     private void expectInspectionMatching(Pattern pattern, int count) {
         myFixture.configureByFile(getTestDirectoryName() + ".java");
         UnitsInspection unitsInspection = new UnitsInspection();
-        SubType.setAnnotations(Arrays.asList("org.checkerframework.framework.qual.SubtypeOf"));
+        UnitsInspection.subTypeAnnotations.add("org.checkerframework.framework.qual.SubtypeOf");
         myFixture.enableInspections(unitsInspection);
 
         List<HighlightInfo> highlightInfoList = myFixture.doHighlighting();
