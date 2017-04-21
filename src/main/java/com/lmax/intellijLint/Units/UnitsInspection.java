@@ -46,7 +46,10 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     @SuppressWarnings("PublicField")
     public final List<String> subTypeAnnotations = new ArrayList<>();
 
-    private PsiMethod walkUpToWrappingMethod(PsiElement element) {
+    /**
+     *  Returns either a {@link PsiMethod} or {@link PsiLambdaExpression}
+     */
+    private PsiElement walkUpToWrappingMethod(PsiElement element) {
         if (element == null) {
             return null;
         }
@@ -56,8 +59,8 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             return null;
         }
 
-        if (parent instanceof PsiMethod) {
-            return (PsiMethod) parent;
+        if (parent instanceof PsiMethod || parent instanceof PsiLambdaExpression) {
+            return parent;
         } else {
             return walkUpToWrappingMethod(parent);
         }
@@ -134,10 +137,11 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return; // void return, won't have annotation.
                 }
 
-                PsiMethod psiMethod = walkUpToWrappingMethod(returnValueExpr);
+                PsiElement psiMethod = walkUpToWrappingMethod(returnValueExpr);
                 if (psiMethod == null)
                 {
                     LOG.warn("Unable to locate wrapping method for return statement " + statement.getText() + " in: " + statement.getContainingFile());
+                    return;
                 }
                 final SubType declared = SubType.getSubType(psiMethod);
 

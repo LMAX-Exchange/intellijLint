@@ -49,4 +49,8 @@ public class Misc extends Base {
     public void testSuper() throws Exception {
         expectNoInspections();
     }
+
+    public void testReturnFromLambda() throws Exception {
+        expectNoInspections();
+    }
 }
