@@ -45,4 +45,8 @@ public class Misc extends Base {
     public void testCastDuringAssignment() throws Exception {
         expectNoInspections();
     }
+
+    public void testSuper() throws Exception {
+        expectNoInspections();
+    }
 }

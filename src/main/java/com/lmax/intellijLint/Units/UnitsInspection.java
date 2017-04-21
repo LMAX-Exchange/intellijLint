@@ -156,6 +156,12 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {
                 super.visitMethodCallExpression(expression);
 
+                if ("super".equals(expression.getMethodExpression().getText()))
+                {
+                    //Don't need to check calls to other constructors.
+                    return;
+                }
+
                 final PsiMethod psiMethod = expression.resolveMethod();
 
                 if (psiMethod == null) {
