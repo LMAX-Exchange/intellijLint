@@ -14,7 +14,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 @SuppressWarnings("WeakerAccess") //Needs to be public as is used in plugin.
 @State(name = "unitsInspection", storages = {@Storage("com.lmax.intellijLint.units.xml")})
@@ -43,8 +45,6 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     public static final String FAILED_TO_RESOLVE = "Failed to resolve subtype on %s due to %s";
     public static final String POLYADIC_MISMATCH = "Found %s when rest of expression is %s";
 
-    @SuppressWarnings("PublicField")
-    public final List<String> subTypeAnnotations = new ArrayList<>();
 
     /**
      *  Returns either a {@link PsiMethod} or {@link PsiLambdaExpression}
@@ -87,7 +87,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
                 if (declared.hasSubtype()) {
                     SubType assigned = SubType.getSubType(initalizerExpr);
-                    inspect(assigned, declared, holder);
+                    inspect(expression, assigned, declared, holder, DESCRIPTION_TEMPLATE);
                 }
             }
 
@@ -105,7 +105,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 }
 
                 final SubType initializer = SubType.getSubType(initializerExpr);
-                inspect(initializer, declared, holder);
+                inspect(field, initializer, declared, holder, DESCRIPTION_TEMPLATE);
             }
 
             @Override
@@ -124,7 +124,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 }
 
                 final SubType initializer = SubType.getSubType(initializerExpression);
-                inspect(initializer, declared, holder);
+                inspect(variable, initializer, declared, holder, DESCRIPTION_TEMPLATE);
             }
 
             @Override
@@ -152,7 +152,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
                 if (declared.hasSubtype()) {
                     final SubType returnValue = SubType.getSubType(returnValueExpr);
-                    inspect(returnValue, declared, holder, RETURNING_DESCRIPTION_TEMPLATE);
+                    inspect(statement, returnValue, declared, holder, RETURNING_DESCRIPTION_TEMPLATE);
                 }
             }
 
@@ -160,15 +160,12 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             public void visitMethodCallExpression(PsiMethodCallExpression expression) {
                 super.visitMethodCallExpression(expression);
 
-                if ("super".equals(expression.getMethodExpression().getText()))
-                {
-                    //Don't need to check calls to other constructors.
-                    return;
-                }
-
                 final PsiMethod psiMethod = expression.resolveMethod();
 
-                if (psiMethod == null) {
+                if (psiMethod == null && "super".equals(expression.getMethodExpression().getText())) {
+                    //TODO: this causes resolution failures in some cases.
+                    return;
+                } else if (psiMethod == null) {
                     //TODO: Might be a lambda. Deal with that somehow.
                     reportResolutionFailure(expression, "being unable to resolve method", holder);
                     return;
@@ -185,10 +182,6 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                 }
             }
         };
-    }
-
-    private void inspect(SubType potentiallyProblematic, SubType checkAgainst, @NotNull ProblemsHolder holder) {
-        inspect(potentiallyProblematic, checkAgainst, holder, DESCRIPTION_TEMPLATE);
     }
 
     private void inspect(SubType potentiallyProblematic, SubType checkAgainst, @NotNull ProblemsHolder holder, String descriptionTemplate) {
@@ -228,7 +221,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     public JComponent createOptionsPanel() {
         return SpecialAnnotationsUtil.createSpecialAnnotationsListControl(
-                this.subTypeAnnotations, "Sub Type annotations");
+                SubType.subTypeAnnotations, "Sub Type annotations");
     }
 
     public boolean isEnabledByDefault() {
@@ -239,15 +232,13 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     @Override
     public UnitsInspection.State getState() {
         State state = new State();
-        state.subTypeAnnotations = new HashSet<>(this.subTypeAnnotations);
+        state.subTypeAnnotations = new HashSet<>(SubType.subTypeAnnotations);
         return state;
     }
 
     @Override
     public void loadState(UnitsInspection.State state) {
         SubType.setAnnotations(state.subTypeAnnotations);
-        this.subTypeAnnotations.clear();
-        this.subTypeAnnotations.addAll(state.subTypeAnnotations);
     }
 
     @Override
