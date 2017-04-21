@@ -177,6 +177,10 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
                 for (int i = 0; (i < parameters.length && i < argExprs.length); i++) {
                     final SubType paramSubType = subTypeFactory.getSubType(parameters[i]);
+                    if (!paramSubType.hasSubtype())
+                    {
+                        continue;
+                    }
                     final SubType argSubType = subTypeFactory.getSubType(argExprs[i]);
 
                     inspect(argSubType, paramSubType, holder, ARGUMENT_TEMPLATE);

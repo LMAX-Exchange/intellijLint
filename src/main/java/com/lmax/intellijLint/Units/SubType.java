@@ -40,7 +40,6 @@ public class SubType {
     {
         return subtypeFQN;
     }
-
     public @NotNull PsiElement getPsiElement() {
         return element;
     }
