@@ -5,7 +5,10 @@ import com.intellij.psi.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.stream.Collectors;
 
 public class SubTypeFactory {
@@ -15,12 +18,6 @@ public class SubTypeFactory {
     public SubTypeFactory(List<String> subTypeAnnotations)
     {
         this.subTypeAnnotations = subTypeAnnotations;
-    }
-
-    public void setSubTypeAnnotations(Collection<String> annotations)
-    {
-        subTypeAnnotations.clear();
-        subTypeAnnotations.addAll(annotations);
     }
 
     private @Nullable SubType getSubType(PsiElement element, PsiModifierList modifierList)
