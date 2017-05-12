@@ -168,7 +168,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     return;
                 } else if (psiMethod == null) {
                     //TODO: Might be a lambda. Deal with that somehow.
-                    reportResolutionFailure(expression, "being unable to resolve method", holder);
+//                    reportResolutionFailure(expression, "being unable to resolve method", holder);
                     return;
                 }
 
@@ -205,7 +205,8 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             reportResolutionFailure(subType.getPsiElement(), subType.getFailureReason().toString(), holder);
             return true;
         }
-        return false;
+
+        return !isIgnoredResolutionFailureReason(subType);
     }
 
     private void reportResolutionFailure(PsiElement element, String failureReason, @NotNull ProblemsHolder holder) {
@@ -216,9 +217,12 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     private boolean isIgnoredResolutionFailureReason(SubType subType) {
         final ResolutionFailureReason faliureReason = subType.getFailureReason();
         return faliureReason == ResolutionFailureReason.MISMATCHED_CONDITIONAL ||
-                faliureReason == ResolutionFailureReason.MISMATCHED_BINARY_EXPRESSION;
+                faliureReason == ResolutionFailureReason.MISMATCHED_BINARY_EXPRESSION ||
+                faliureReason == ResolutionFailureReason.COULD_NOT_RESOLVE_ANNOTATION ||
+                faliureReason == ResolutionFailureReason.COULD_NOT_RESOLVE_CAST_TYPE ||
+                faliureReason == ResolutionFailureReason.COULD_NOT_RESOLVE_METHOD ||
+                faliureReason == ResolutionFailureReason.COULD_NOT_RESOLVE_REFERENCE;
     }
-
 
     public JComponent createOptionsPanel() {
         return SpecialAnnotationsUtil.createSpecialAnnotationsListControl(
