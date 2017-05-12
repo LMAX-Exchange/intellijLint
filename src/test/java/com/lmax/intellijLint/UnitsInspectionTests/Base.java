@@ -35,11 +35,17 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
         expectInspectionMatching(pattern, 1);
     }
 
+    void expectInspection(String expectedMessage, int atOffset) {
+        final Pattern pattern = Pattern.compile("^" + Pattern.quote(expectedMessage) + "$");
+        final HighlightInfo highlightInfo = expectInspectionMatching(pattern, 1);
+        assertEquals(atOffset, highlightInfo.getStartOffset());
+    }
+
     void expectNoInspections() {
         expectInspectionMatching(UNITS_DESCRIPTIONS, 0);
     }
 
-    private void expectInspectionMatching(Pattern pattern, int count) {
+    private HighlightInfo expectInspectionMatching(Pattern pattern, int count) {
         myFixture.configureByFile(getTestDirectoryName() + ".java");
         UnitsInspection unitsInspection = new UnitsInspection();
         UnitsInspection.subTypeAnnotations.add("org.checkerframework.framework.qual.SubtypeOf");
@@ -76,5 +82,7 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
         }
 
         Assert.assertEquals("Found unexpected Units inspections:", matchingInspections, allUnitInspections);
+
+        return !matchingInspections.isEmpty() ? matchingInspections.get(0) : null;
     }
 }

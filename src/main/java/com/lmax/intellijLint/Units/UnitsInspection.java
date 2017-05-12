@@ -183,14 +183,10 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
                     }
                     final SubType argSubType = subTypeFactory.getSubType(argExprs[i]);
 
-                    inspect(argSubType, paramSubType, holder, ARGUMENT_TEMPLATE);
+                    inspect(argExprs[i], argSubType, paramSubType, holder, ARGUMENT_TEMPLATE);
                 }
             }
         };
-    }
-
-    private void inspect(SubType potentiallyProblematic, SubType checkAgainst, @NotNull ProblemsHolder holder, String descriptionTemplate) {
-        inspect(potentiallyProblematic.getPsiElement(), potentiallyProblematic, checkAgainst, holder, descriptionTemplate);
     }
 
     private void inspect(PsiElement element, SubType left, SubType right, @NotNull ProblemsHolder holder, String descriptionTemplate) {

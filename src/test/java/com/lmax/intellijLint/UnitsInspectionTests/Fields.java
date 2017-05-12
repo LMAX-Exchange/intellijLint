@@ -25,4 +25,12 @@ public class Fields extends Base {
     public void testRightUntypedOnFieldAssignment() throws Exception {
         expectInspection("Assigning null to variable of type foo");
     }
+
+    public void testTypedGetterAndUntypedField() throws Exception {
+        expectInspection("Returning null when expecting foo");
+    }
+
+    public void testUseUntypedFieldInTypedMethod() throws Exception {
+        expectInspection("Passing null when expecting a parameter of type foo", 171);
+    }
 }
