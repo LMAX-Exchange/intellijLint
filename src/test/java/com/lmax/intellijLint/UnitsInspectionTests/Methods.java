@@ -16,14 +16,14 @@ public class Methods extends Base {
     public void testCorrectReturnThis() throws Exception {
         expectNoInspections();
     }
-// TODO: handle lambdas.
-//    public void testLambda() throws Exception {
-//        expectInspection("Passing null when expecting a parameter of type foo");
-//    }
-//
-//    public void testCorrectLambda() throws Exception {
-//        expectNoInspections();
-//    }
+
+    public void testLambda() throws Exception {
+        expectInspection("Passing null when expecting a parameter of type foo", 173);
+    }
+
+    public void testCorrectLambda() throws Exception {
+        expectNoInspections();
+    }
 
     public void testCorrectReturn() throws Exception {
         expectNoInspections();
