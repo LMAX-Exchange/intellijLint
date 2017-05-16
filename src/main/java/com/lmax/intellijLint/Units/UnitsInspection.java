@@ -206,7 +206,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             return true;
         }
 
-        return !isIgnoredResolutionFailureReason(subType);
+        return isIgnoredResolutionFailureReason(subType);
     }
 
     private void reportResolutionFailure(PsiElement element, String failureReason, @NotNull ProblemsHolder holder) {
