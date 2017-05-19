@@ -189,14 +189,14 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
         };
     }
 
-    private void inspect(PsiElement element, SubType left, SubType right, @NotNull ProblemsHolder holder, String descriptionTemplate) {
-        if (reportResolutionFailure(left, holder) || reportResolutionFailure(right, holder)) {
+    private void inspect(PsiElement element, SubType found, SubType required, @NotNull ProblemsHolder holder, String descriptionTemplate) {
+        if (reportResolutionFailure(required, holder) || reportResolutionFailure(found, holder)) {
             return;
         }
 
-        if (!Objects.equals(left, right)) {
-            final String description = String.format(descriptionTemplate, left.getSubtypeFQN(), right.getSubtypeFQN());
-            holder.registerProblem(element, description);
+        if (!Objects.equals(required, found)) {
+            final String description = String.format(descriptionTemplate, found.getSubtypeFQN(), required.getSubtypeFQN());
+            holder.registerProblem(element, description, makeQuickFixes(required, found));
         }
     }
 
