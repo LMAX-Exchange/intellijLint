@@ -197,7 +197,10 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
         if (!Objects.equals(required, found)) {
             final String description = String.format(descriptionTemplate, found.getSubtypeFQN(), required.getSubtypeFQN());
-            holder.registerProblem(element, description, makeQuickFixes(required, found));
+            if (element.isValid() && found.getPsiElement().isValid() && required.getPsiElement().isValid())
+            {
+                holder.registerProblem(element, description, makeQuickFixes(required, found));
+            }
         }
     }
 
@@ -224,7 +227,10 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     private void reportResolutionFailure(PsiElement element, String failureReason, @NotNull ProblemsHolder holder) {
         final String description = String.format(FAILED_TO_RESOLVE, element, failureReason);
-        holder.registerProblem(element, description);
+        if (element.isValid())
+        {
+            holder.registerProblem(element, description);
+        }
     }
 
     private boolean isIgnoredResolutionFailureReason(SubType subType) {
