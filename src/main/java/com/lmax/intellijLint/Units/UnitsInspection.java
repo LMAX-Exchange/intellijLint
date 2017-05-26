@@ -1,6 +1,7 @@
 package com.lmax.intellijLint.Units;
 
 import com.intellij.codeInspection.BaseJavaLocalInspectionTool;
+import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemsHolder;
 import com.intellij.codeInspection.util.SpecialAnnotationsUtil;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -198,6 +199,18 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             final String description = String.format(descriptionTemplate, found.getSubtypeFQN(), required.getSubtypeFQN());
             holder.registerProblem(element, description, makeQuickFixes(required, found));
         }
+    }
+
+    private LocalQuickFix[] makeQuickFixes(SubType required, SubType found)
+    {
+        List<LocalQuickFix> fixes = new ArrayList<>();
+        if (found.getPsiElement() instanceof PsiVariable &&
+                AnnotateVariableQuickFix.canApply((PsiVariable) found.getPsiElement()))
+        {
+            fixes.add(new AnnotateVariableQuickFix((PsiVariable) found.getPsiElement(), required));
+        }
+
+        return fixes.toArray(new LocalQuickFix[0]);
     }
 
     private boolean reportResolutionFailure(SubType subType, @NotNull ProblemsHolder holder) {
