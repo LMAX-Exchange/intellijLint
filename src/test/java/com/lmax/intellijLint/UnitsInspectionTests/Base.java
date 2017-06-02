@@ -23,7 +23,8 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
             .map(s -> s.replace("%s", ".*"))
             .map(s -> "(" + s + ")")
             .reduce((s1, s2) -> String.join("|", s1, s2)).get();
-    private static final Pattern UNITS_DESCRIPTIONS = Pattern.compile("^(" + TEMPLATES_AS_REGEX_GROUPS + ")$");
+    protected static final Pattern UNITS_DESCRIPTIONS = Pattern.compile("^(" + TEMPLATES_AS_REGEX_GROUPS + ")$");
+    private boolean loadedFile = false;
 
     @Override
     protected String getTestDataPath() {
@@ -46,22 +47,29 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
     }
 
     private HighlightInfo expectInspectionMatching(Pattern pattern, int count) {
-        myFixture.configureByFile(getTestDirectoryName() + ".java");
-        UnitsInspection unitsInspection = new UnitsInspection();
-        UnitsInspection.subTypeAnnotations.add("org.checkerframework.framework.qual.SubtypeOf");
-        myFixture.enableInspections(unitsInspection);
+        loadFile();
 
         List<HighlightInfo> highlightInfoList = myFixture.doHighlighting();
-        final List<HighlightInfo> matchingInspections = highlightInfoList.stream()
-                .filter(x -> x.getDescription() != null)
-                .filter(x -> pattern.matcher(x.getDescription()).matches())
-                .collect(Collectors.toList());
+        final List<HighlightInfo> matchingInspections = getMatchingInspections(pattern, highlightInfoList);
+        final List<HighlightInfo> allUnitInspections = getMatchingInspections(UNITS_DESCRIPTIONS, highlightInfoList);
 
-        final List<HighlightInfo> allUnitInspections = highlightInfoList.stream()
-                .filter(x -> x.getDescription() != null)
-                .filter(x -> UNITS_DESCRIPTIONS.matcher(x.getDescription()).matches())
-                .collect(Collectors.toList());
+        assertOnInspections(pattern, count, matchingInspections, allUnitInspections);
 
+        return !matchingInspections.isEmpty() ? matchingInspections.get(0) : null;
+    }
+
+    private void loadFile() {
+        if (!loadedFile)
+        {
+            myFixture.configureByFile(getTestDirectoryName() + ".java");
+            UnitsInspection unitsInspection = new UnitsInspection();
+            UnitsInspection.subTypeAnnotations.add("org.checkerframework.framework.qual.SubtypeOf");
+            myFixture.enableInspections(unitsInspection);
+            loadedFile = true;
+        }
+    }
+
+    protected void assertOnInspections(Pattern pattern, int count, List<HighlightInfo> matchingInspections, List<HighlightInfo> allUnitInspections) {
         if (count == 0) {
             Assert.assertEquals("Expected no inspections matching " + pattern.toString(),
                     Collections.emptyList(),
@@ -82,7 +90,12 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
         }
 
         Assert.assertEquals("Found unexpected Units inspections:", matchingInspections, allUnitInspections);
+    }
 
-        return !matchingInspections.isEmpty() ? matchingInspections.get(0) : null;
+    protected List<HighlightInfo> getMatchingInspections(Pattern pattern, List<HighlightInfo> highlightInfoList) {
+        return highlightInfoList.stream()
+                    .filter(x -> x.getDescription() != null)
+                    .filter(x -> pattern.matcher(x.getDescription()).matches())
+                    .collect(Collectors.toList());
     }
 }
