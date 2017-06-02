@@ -159,22 +159,28 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
             }
 
             @Override
-            public void visitMethodCallExpression(PsiMethodCallExpression expression) {
-                super.visitMethodCallExpression(expression);
+            public void visitCallExpression(PsiCallExpression expression) {
+                super.visitCallExpression(expression);
 
                 final PsiMethod psiMethod = expression.resolveMethod();
 
-                if (psiMethod == null && "super".equals(expression.getMethodExpression().getText())) {
+                if (psiMethod == null && "super".equals(expression.getText())) {
                     //TODO: this causes resolution failures in some cases.
                     return;
                 } else if (psiMethod == null) {
                     //TODO: Might be a lambda. Deal with that somehow.
-//                    reportResolutionFailure(expression, "being unable to resolve method", holder);
+                    //reportResolutionFailure(expression, "being unable to resolve method", holder);
                     return;
                 }
 
                 final PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
-                final PsiExpression[] argExprs = expression.getArgumentList().getExpressions();
+                final PsiExpressionList argumentList = expression.getArgumentList();
+                if (argumentList == null)
+                {
+                    //TODO: Probably want to report everything as a failure.
+                    return;
+                }
+                final PsiExpression[] argExprs = argumentList.getExpressions();
 
                 for (int i = 0; (i < parameters.length && i < argExprs.length); i++) {
                     final SubType paramSubType = subTypeFactory.getSubType(parameters[i]);
