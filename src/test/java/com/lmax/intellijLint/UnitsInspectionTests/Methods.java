@@ -13,6 +13,10 @@ public class Methods extends Base {
         expectInspection("Returning null when expecting foo");
     }
 
+    public void testReturnParam() throws Exception {
+        expectInspection("Returning null when expecting foo");
+    }
+
     public void testCorrectReturnThis() throws Exception {
         expectNoInspections();
     }
