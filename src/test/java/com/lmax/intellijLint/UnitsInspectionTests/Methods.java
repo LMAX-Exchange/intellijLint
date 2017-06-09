@@ -42,4 +42,8 @@ public class Methods extends Base {
     {
         expectNoInspections();
     }
+
+    public void testImplementingAnnotated() throws Exception {
+        expectInspection("Implementation subtype (null) should match interface (foo)");
+    }
 }

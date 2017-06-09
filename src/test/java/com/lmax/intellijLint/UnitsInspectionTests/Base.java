@@ -18,7 +18,8 @@ abstract class Base extends LightCodeInsightFixtureTestCase {
             UnitsInspection.BINARY_EXPRESSION_DESCRIPTION_TEMPLATE,
             UnitsInspection.FAILED_TO_RESOLVE,
             UnitsInspection.POLYADIC_MISMATCH,
-            UnitsInspection.ARGUMENT_TEMPLATE);
+            UnitsInspection.ARGUMENT_TEMPLATE,
+            UnitsInspection.INTERFACE_TEMPLATE);
     private static final String TEMPLATES_AS_REGEX_GROUPS = DESCRIPTION_TEMPLATES
             .map(s -> s.replace("%s", ".*"))
             .map(s -> "(" + s + ")")
