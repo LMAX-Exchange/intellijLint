@@ -300,8 +300,12 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
 
     private void reportResolutionFailure(PsiElement element, String failureReason, @NotNull ProblemsHolder holder) {
         final String description = String.format(FAILED_TO_RESOLVE, element, failureReason);
-        if (element.isValid()) {
-            holder.registerProblem(element, description);
+
+        //Sanity check, similar to what's in the problem holder.
+        if (element.getTextRange().getStartOffset() >= element.getTextRange().getEndOffset()) {
+            if (!(element instanceof PsiFile)) {
+                holder.registerProblem(element, description);
+            }
         }
     }
 
