@@ -3,14 +3,14 @@
   <id>com.lmax.intellijLint</id>
   <name>intellijLint</name>
   <version>1.0</version>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <vendor email="intellij@lmax.com" url="https://github.com/lmax/intellijLint">YourCompany</vendor>
 
   <description><![CDATA[
-      Additional inspections
+      Some additional inspections, including a type checker for annotated primitives.
     ]]></description>
 
   <change-notes><![CDATA[
-      1.0
+      0.1 - Initial release
     ]]>
   </change-notes>
 
