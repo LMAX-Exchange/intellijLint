@@ -2,8 +2,8 @@
 <idea-plugin version="2">
   <id>com.lmax.intellijLint</id>
   <name>intellijLint</name>
-  <version>1.0</version>
-  <vendor email="intellij@lmax.com" url="https://github.com/lmax/intellijLint">YourCompany</vendor>
+  <version>0.1</version>
+  <vendor email="opensource@lmax.com" url="https://github.com/lmax/intellijLint">LMAX</vendor>
 
   <description><![CDATA[
       Some additional inspections, including a type checker for annotated primitives.
@@ -14,14 +14,9 @@
     ]]>
   </change-notes>
 
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
   <idea-version since-build="145.0"/>
 
-  <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
-       on how to target different products -->
-  <!-- uncomment to enable plugin in all products
   <depends>com.intellij.modules.lang</depends>
-  -->
 
   <extensions defaultExtensionNs="com.intellij">
     <inspectionToolProvider implementation="com.lmax.intellijLint.OptionalNullProvider"/>
@@ -33,9 +28,4 @@
       <implementation-class>com.lmax.intellijLint.Units.UnitsInspection</implementation-class>
     </component>
   </project-components>
-
-  <actions>
-    <!-- Add your actions here -->
-  </actions>
-
 </idea-plugin>
