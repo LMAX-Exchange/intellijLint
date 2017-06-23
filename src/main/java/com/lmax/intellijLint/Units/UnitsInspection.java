@@ -63,7 +63,7 @@ public class UnitsInspection extends BaseJavaLocalInspectionTool implements Pers
     @NotNull
     @Override
     public String getGroupDisplayName() {
-        return "LMAX";
+        return "Java";
     }
 
     public static final String DESCRIPTION_TEMPLATE = "Assigning %s to variable of type %s";

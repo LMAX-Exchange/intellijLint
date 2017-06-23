@@ -37,7 +37,7 @@ public class OptionalNullInspection extends BaseJavaLocalInspectionTool {
     @NotNull
     @Override
     public String getGroupDisplayName() {
-        return "LMAX";
+        return "Java";
     }
 
     @NonNls
