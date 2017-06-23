@@ -6,6 +6,8 @@ At the moment you should not rely solely on this plugin to replace the static an
 Checker Framework, but rather just to make it easier to work with code that is expected to pass the 
 unit check provided by checker.
 
+Also includes a bonus inspection checking that you don't assign null to an Optional, or variations thereof.
+
 #### Why?
 
 At [LMAX](https://www.lmax.com/) we rely on the checker framework to make sure we keep our price and 
@@ -13,8 +15,9 @@ quantity fields at the same measurement (for instance quantity can be represente
 [contract quantity](http://www.investopedia.com/terms/c/contractsize.asp), or the underlying quantity)
 
 The time it takes to run the checker framework over our entire codebase can be measured in minutes,
-so most of the time we don't run it locally before committing, but rather leave it up to our CI infrastructure.
-And basically, we just want faster feedback, so I spent some time making that happen.
+and we only run it just before committing. This leads to us finding out about type bugs when we think
+we're already done, rather than when we're working on the code that contains the incorrect typing.
+Basically, we just want faster feedback, so I spent some time making that happen.
 
 #### What does it actually do?
 
@@ -22,6 +25,9 @@ At this stage, it just checks that annotations on usages of a primitive match wh
 For example:
 
 ```java
+@org.checkerframework.framework.qual.SubtypeOf
+@interface Price {}
+
 class TestClass {
     private @Price long aField;
     
