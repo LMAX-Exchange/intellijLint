@@ -15,18 +15,21 @@
   -->
 
 <!--suppress XmlUnboundNsPrefix -->
-<idea-plugin version="2">
+<idea-plugin>
   <id>com.lmax.intellijLint</id>
   <name>intellijLint</name>
-  <version>0.1</version>
-  <vendor email="opensource@lmax.com" url="https://github.com/lmax/intellijLint">LMAX</vendor>
+  <version>0.1.1</version>
+  <vendor email="opensource@lmax.com" url="https://github.com/LMAX-Exchange/intellijLint">LMAX</vendor>
 
   <description><![CDATA[
       Some additional inspections, including a type checker for annotated primitives.
     ]]></description>
 
   <change-notes><![CDATA[
-      0.1 - Initial release
+    <ul>
+      <li>0.1 - Initial release</li>
+      <li>0.1.1 - Fix broken link in plugin description.</li>
+    </ul>
     ]]>
   </change-notes>
 
